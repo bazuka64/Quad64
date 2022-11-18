@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Melanchall.DryWetMidi.Core;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -53,11 +54,16 @@ namespace Quad64
             // if No music then return
             if (id == 0) return;
 
-            // write music out
+            // write m64 out
             File.WriteAllBytes($"../../../../midi/{ROM.Instance.romName}/{id} {insts[0]} {name}.m64", data);
 
             // convert music
+            OutputMIDI midi = new OutputMIDI();
+            MidiFile midiFile = midi.ConvertToMIDI(this);
 
+            // write midi out
+            string fileName = $"../../../../midi/{ROM.Instance.romName}/{id} {insts[0]} {name}.mid";
+            midiFile.Write(fileName, true);
 
             // play music
         }

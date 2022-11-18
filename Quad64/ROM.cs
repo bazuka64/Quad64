@@ -59,7 +59,7 @@ namespace Quad64
             }
 
             // 曲データの取得
-            br.BaseStream.Position = seqTable;
+            br.BaseStream.Position = seqTable + 4;
             foreach (var seq in sequences)
             {
                 uint startoff = br.ReadUInt32();
