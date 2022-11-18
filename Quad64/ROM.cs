@@ -97,6 +97,7 @@ namespace Quad64
                         continue;
                     }
                     seq.name = Sequence.tNames[seq.id];
+                    seq.defaultSeq = true;
                 }
                 return;
             }
@@ -104,6 +105,12 @@ namespace Quad64
             foreach(var seq in sequences)
             {
                 seq.name = br.ReadString();
+                if (seq.id > Sequence.tNames.Length - 1)
+                    continue;
+                if (seq.name.Contains(Sequence.tNames[seq.id], StringComparison.OrdinalIgnoreCase))
+                {
+                    seq.defaultSeq = true;
+                }
             }
         }
     }

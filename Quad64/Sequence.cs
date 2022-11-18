@@ -41,6 +41,7 @@ namespace Quad64
         public string name;
         public byte[] data;
         public List<byte> insts = new List<byte>();
+        public bool defaultSeq;
 
         public Sequence(int id)
         {

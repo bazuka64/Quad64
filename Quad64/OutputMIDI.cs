@@ -3,11 +3,19 @@ using Melanchall.DryWetMidi.Core;
 using Melanchall.DryWetMidi.Interaction;
 using Syroot.BinaryData;
 
+// last impact: end command not exist problem
+// sr8 デザイアドライブ and so on: too
+// ASA p4heartbeat: loop command not implemented
+
 namespace Quad64
 {
     internal class OutputMIDI
     {
         MidiFile midiFile = new MidiFile();
+
+        long seqTimestamp = 0;
+        long channelTimestamp = 0;
+        long layerTimestamp = 0;
 
         public OutputMIDI()
         {
@@ -25,6 +33,7 @@ namespace Quad64
 
             ParseSequence(br);
 
+            // 4分音符あたりのtick数
             midiFile.TimeDivision = new TicksPerQuarterNoteTimeDivision(48);
 
             return midiFile;
@@ -32,6 +41,11 @@ namespace Quad64
 
         void ParseSequence(BinaryDataReader br)
         {
+            seqTimestamp = 0;
+
+            MidiEvent midiEvent;
+            TimedEvent timedEvent;
+
             while (true)
             {
                 byte cmd = br.ReadByte();
@@ -46,11 +60,41 @@ namespace Quad64
                             return;
                         case 0xfd:
                             // timestamp
-                            ReadParameter(br);
+                            seqTimestamp += ReadParameter(br);
+                            break;
+                        case 0xfb:
+                            // branch always
+                            uint jumpTo = br.ReadUInt16();
+                            if(jumpTo > br.BaseStream.Position)
+                            {
+                                // ループ処理でなければジャンプする
+                                br.BaseStream.Position = jumpTo;
+                            }
+                            break;
+                        case 0xf9:
+                            // branch if
+                            br.ReadUInt16();
+                            break;
+                        case 0xf5:
+                            // branch if
+                            br.ReadUInt16();
                             break;
                         case 0xdd:
                             // tempo
-                            br.ReadByte();
+                            // bpm: 1分あたりの4分音符数
+                            int bpm = br.ReadByte();
+                            long result = (long)((1 / (double)bpm) * 60 * 1000 * 1000);
+                            midiEvent = new SetTempoEvent()
+                            {
+                                MicrosecondsPerQuarterNote = result,
+                            };
+                            timedEvent = new TimedEvent(midiEvent, seqTimestamp);
+
+                            // set tempo in trackChunk[0]
+                            TrackChunk trackChunk = (TrackChunk)midiFile.Chunks[0];
+                            TimedObjectsManager<TimedEvent> tom = trackChunk.ManageTimedEvents();
+                            tom.Objects.Add(timedEvent);
+                            tom.SaveChanges();
                             break;
                         case 0xdb:
                             // master volume
@@ -64,11 +108,16 @@ namespace Quad64
                             // disable channel
                             br.ReadUInt16();
                             break;
+                        case 0xd5:
+                            // set mute scale
+                            br.ReadSByte();
+                            break;
                         case 0xd3:
                             // set mute bhv
                             br.ReadByte();
                             break;
                         default:
+                            throw new Exception("not implemented command");
                             break;
                     }
                 }
@@ -87,7 +136,11 @@ namespace Quad64
                             ParseChannel(br, loBits);
                             br.BaseStream.Position = returnOffset;
                             break;
+                        case 0x80:
+                            // get variation
+                            break;
                         default:
+                            throw new Exception("not implemented command");
                             break;
                     }
                 }
@@ -100,10 +153,12 @@ namespace Quad64
             TrackChunk trackChunk = (TrackChunk)midiFile.Chunks[channel];
             TimedObjectsManager<TimedEvent> tom = trackChunk.ManageTimedEvents();
 
-            long channelTimestamp = 0;
+            channelTimestamp = 0;
 
             ChannelEvent channelEvent;
             TimedEvent timedEvent;
+
+            Stack<long> returnOffsets = new Stack<long>();
 
             while (true)
             {
@@ -116,11 +171,23 @@ namespace Quad64
                     {
                         case 0xff:
                             // end
+                            if (returnOffsets.Count > 0)
+                            {
+                                br.BaseStream.Position = returnOffsets.Pop();
+                                break;
+                            }
                             tom.SaveChanges();
                             return;
                         case 0xfd:
                             // timestamp
                             channelTimestamp += ReadParameter(br);
+                            break;
+                        case 0xfc:
+                            // call
+                            ushort jumpTo = br.ReadUInt16();
+                            long retrunOffset = br.BaseStream.Position;
+                            returnOffsets.Push(retrunOffset);
+                            br.BaseStream.Position = jumpTo;
                             break;
                         case 0xdf:
                             // channel volume
@@ -134,7 +201,7 @@ namespace Quad64
                                 ControlValue = (SevenBitNumber)volume,
                                 Channel = (FourBitNumber)channel,
                             };
-                            timedEvent = new TimedEvent(channelEvent, channelTimestamp);
+                            timedEvent = new TimedEvent(channelEvent, seqTimestamp + channelTimestamp);
                             tom.Objects.Add(timedEvent);
                             break;
                         case 0xdd:
@@ -146,11 +213,19 @@ namespace Quad64
                                 ControlValue = (SevenBitNumber)pan,
                                 Channel = (FourBitNumber)channel,
                             };
-                            timedEvent = new TimedEvent(channelEvent, channelTimestamp);
+                            timedEvent = new TimedEvent(channelEvent, seqTimestamp + channelTimestamp);
                             tom.Objects.Add(timedEvent);
                             break;
                         case 0xdc:
                             // set pan chan weight
+                            br.ReadByte();
+                            break;
+                        case 0xd8:
+                            // set vibrato extent
+                            br.ReadByte();
+                            break;
+                        case 0xd4:
+                            // set reverb
                             br.ReadByte();
                             break;
                         case 0xd3:
@@ -164,7 +239,7 @@ namespace Quad64
                                 PitchValue = (ushort)pitchBend,
                                 Channel = (FourBitNumber)channel,
                             };
-                            timedEvent = new TimedEvent(channelEvent, channelTimestamp);
+                            timedEvent = new TimedEvent(channelEvent, seqTimestamp + channelTimestamp);
                             tom.Objects.Add(timedEvent);
                             break;
                         case 0xc4:
@@ -181,10 +256,11 @@ namespace Quad64
                                 ProgramNumber = (SevenBitNumber)inst,
                                 Channel = (FourBitNumber)channel,
                             };
-                            timedEvent = new TimedEvent(channelEvent, channelTimestamp);
+                            timedEvent = new TimedEvent(channelEvent, seqTimestamp + channelTimestamp);
                             tom.Objects.Add(timedEvent);
                             break;
                         default:
+                            throw new Exception("not implemented command");
                             break;
                     }
                 }
@@ -207,6 +283,7 @@ namespace Quad64
                             // set note priority
                             break;
                         default:
+                            throw new Exception("not implemented command");
                             break;
                     }
                 }
@@ -215,31 +292,82 @@ namespace Quad64
 
         void ParseLayer(BinaryDataReader br, int channel ,int layer, TimedObjectsManager<TimedEvent> tom)
         {
-            long layerTimestamp = 0;
+            layerTimestamp = 0;
 
             int key = 0;
             int timestamp = 0;
             int velocity = 0;
             int gatetime = 0;
 
+            int transpose = 0;
+
+            Stack<long> returnOffsets = new Stack<long>();
+
             while (true)
             {
                 byte cmd = br.ReadByte();
 
-                if (cmd >= 0xc0)
+
+                if (cmd >= 0xd0 && cmd <= 0xef)
+                {
+                    // cmd == 0xd_ or 0xe_
+                    switch(cmd & 0xf0)
+                    {
+                        case 0xd0:
+                            // setshortnotevelocityfromtable
+                            break;
+                        default:
+                            throw new Exception("not implemented command");
+                            break;
+                    }
+                }
+                else if (cmd >= 0xc0)
                 {
                     // 細かい命令
+                    // cmd == 0xc_ or 0xf_
                     switch (cmd)
                     {
                         case 0xff:
                             // end
+                            if(returnOffsets.Count > 0)
+                            {
+                                br.BaseStream.Position = returnOffsets.Pop();
+                                break;
+                            }
                             tom.SaveChanges();
                             return;
+                        case 0xfd:
+                            // timestamp ?
+                            layerTimestamp += ReadParameter(br);
+                            break;
+                        case 0xfc:
+                            // call
+                            ushort jumpTo = br.ReadUInt16();
+                            long retrunOffset = br.BaseStream.Position;
+                            returnOffsets.Push(retrunOffset);
+                            br.BaseStream.Position = jumpTo;
+                            break;
+                        case 0xf8:
+                            // loop start todo
+                            br.ReadByte();
+                            break;
+                        case 0xf7:
+                            // loop end todo
+                            break;
+                        case 0xc2:
+                            // transpose
+                            transpose = br.ReadByte();
+                            break;
+                        case 0xc1:
+                            // setshortnotevelocity
+                            br.ReadByte();
+                            break;
                         case 0xc0:
                             // layer timestamp
                             layerTimestamp += ReadParameter(br);
                             break;
                         default:
+                            throw new Exception("not implemented command");
                             break;
                     }
                 }
@@ -276,15 +404,17 @@ namespace Quad64
                             gatetime = br.ReadByte();
                             break;
                         default:
+                            throw new Exception("not implemented command");
                             break;
                     }
 
-                    key += 21;
-
-                    
+                    key = key + 21 + transpose;
+                    velocity &= 0x7f; // 最大ボリューム頭打ち
 
                     NoteEvent note;
                     TimedEvent timed;
+
+                    long totalTimestamp = seqTimestamp + channelTimestamp + layerTimestamp;
 
                     // note on
                     note = new NoteOnEvent()
@@ -294,7 +424,7 @@ namespace Quad64
                         Channel = (FourBitNumber)channel,
                     };
                     // 絶対時間の計算が必要 todo
-                    timed = new TimedEvent(note, layerTimestamp);
+                    timed = new TimedEvent(note, totalTimestamp);
                     tom.Objects.Add(timed);
 
                     // note off
@@ -305,7 +435,8 @@ namespace Quad64
                         Channel = (FourBitNumber)channel,
                     };
                     // 絶対時間の計算が必要 todo
-                    timed = new TimedEvent(note, layerTimestamp + timestamp - (timestamp * gatetime) / 255);
+                    
+                    timed = new TimedEvent(note, totalTimestamp + timestamp - (timestamp * gatetime) / 255);
                     tom.Objects.Add(timed);
 
                     

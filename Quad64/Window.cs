@@ -11,7 +11,7 @@ namespace Quad64
     {
         ImGuiController imGuiController;
         bool resize = true;
-        const int uiWidth = 4;
+        const int uiWidth = 2;
         int currentRomIndex = -1;
         int currentSeqIndex = -1;
         ImFontPtr font;
@@ -97,11 +97,19 @@ namespace Quad64
                         ImGui.PushStyleColor(ImGuiCol.ButtonActive, 0x8000FF00);
                         ImGui.PushStyleColor(ImGuiCol.ButtonHovered, 0x8000FF00);
                     }
+                    if (seq.defaultSeq)
+                    {
+                        ImGui.PushStyleColor(ImGuiCol.Text, 0xff00ffff);
+                    }
                     if (ImGui.Button($"{seq.id:D2} {seq.insts[0]} " + seq.name))
                     {
                         // sequence button pushed
                         seq.Play();
                         currentSeqIndex = seq.id;
+                    }
+                    if (seq.defaultSeq)
+                    {
+                        ImGui.PopStyleColor();
                     }
                     if (selected)
                     {
