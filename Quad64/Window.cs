@@ -20,13 +20,17 @@ namespace Quad64
 
         public Window(GameWindowSettings gameWindowSettings, NativeWindowSettings nativeWindowSettings) : base(gameWindowSettings, nativeWindowSettings)
         {
+            // window init
             CenterWindow();
             IsVisible = true;
+
+            // imgui init
             imGuiController = new ImGuiController(this);
             ImGui.StyleColorsClassic();
             font = ImGui.GetIO().Fonts.AddFontFromFileTTF(@"C:\Windows\Fonts\ARIAL.TTF", 20);
             imGuiController.RecreateFontDeviceTexture();
 
+            // rom list init
             romPaths = Directory.GetFiles(System.Environment.GetFolderPath(Environment.SpecialFolder.DesktopDirectory) + "/roms/");
         }
 
@@ -37,18 +41,18 @@ namespace Quad64
             GL.ClearColor(Color4.DarkBlue);
             GL.Clear(ClearBufferMask.ColorBufferBit);
 
-            // imgui
+            // imgui begin
             imGuiController.Update(this, (float)args.Time);
             ImGui.PushFont(font);
 
-            // Rom and Level
+            // imgui Rom list
             if (resize)
             {
                 ImGui.SetNextWindowPos(System.Numerics.Vector2.Zero);
                 ImGui.SetNextWindowSize(new System.Numerics.Vector2(Size.X/ uiWidth, Size.Y));
             }
             ImGui.SetNextWindowCollapsed(false, ImGuiCond.Once);
-            ImGui.Begin("Rom and Level");
+            ImGui.Begin("Rom");
             for (int i = 0; i < romPaths.Length;i++)
             {
                 bool selected = currentRomIndex == i;
@@ -60,6 +64,7 @@ namespace Quad64
                 }
                 if (ImGui.Button(Path.GetFileNameWithoutExtension(romPaths[i])))
                 {
+                    // rom button pushed
                     ROM.Instance = new ROM(romPaths[i]);
                     currentRomIndex = i;
                     currentSeqIndex = -1;
@@ -73,7 +78,7 @@ namespace Quad64
             }
             ImGui.End();
 
-            // Sequence
+            // imgui Sequence list
             if (resize)
             {
                 ImGui.SetNextWindowPos(new System.Numerics.Vector2(Size.X/ uiWidth, 0));
@@ -94,6 +99,7 @@ namespace Quad64
                     }
                     if (ImGui.Button($"{seq.id:D2} {seq.insts[0]} " + seq.name))
                     {
+                        // sequence button pushed
                         seq.Play();
                         currentSeqIndex = seq.id;
                     }
@@ -107,6 +113,7 @@ namespace Quad64
             }
             ImGui.End();
 
+            // imgui end
             resize = false;
             ImGui.PopFont();
             imGuiController.Render();
