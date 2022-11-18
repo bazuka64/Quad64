@@ -2,6 +2,8 @@
 using Melanchall.DryWetMidi.Core;
 using Melanchall.DryWetMidi.Interaction;
 using Syroot.BinaryData;
+using System.Xml;
+using System.Text.Json;
 
 // last impact: end command not exist problem
 // sr8 デザイアドライブ and so on: too
@@ -17,14 +19,24 @@ namespace Quad64
         long channelTimestamp = 0;
         long layerTimestamp = 0;
 
-        public OutputMIDI()
-        {
-        }
+        XmlNode indexentry;
+        JsonElement instrument_list;
 
         public MidiFile ConvertToMIDI(Sequence seq)
         {
             BinaryDataReader br = new BinaryDataReader(new MemoryStream(seq.data));
             br.ByteConverter = ByteConverter.BigEndian;
+
+            // 楽器変換用のxml, jsonの読み込み
+            int instSetID = seq.insts[0];
+            XmlDocument xml = new XmlDocument();
+            xml.Load("../../../../instrument/sm64_info.xml");
+            indexentry = xml.SelectSingleNode($"RomDesc/audiobankidx/indexentry[@index={instSetID}]");
+
+            string jsonFile = $"{instSetID:X2}.json";
+            string jsonText = File.ReadAllText($"../../../../instrument/sound_banks/{jsonFile}");
+            JsonDocument json = JsonDocument.Parse(jsonText);
+            instrument_list = json.RootElement.GetProperty("instrument_list");
 
             for(int i = 0; i < 16; i++)
             {
@@ -250,10 +262,19 @@ namespace Quad64
                             int inst = br.ReadByte();
 
                             // convert inst m64 to midi
+                            // extra instrument bankの場合の処理 todo
+                            int inst_midi = 0x7f;
+                            if (inst != 0x7f)
+                            {
+                                string str = instrument_list[inst].ToString().Substring(4);
+                                int inst_xml = int.Parse(str);
+                                XmlNode item = indexentry.SelectSingleNode($"instruments/item[@index={inst_xml}]");
+                                inst_midi = int.Parse(item.Attributes["program"].InnerText);
+                            }
 
                             channelEvent = new ProgramChangeEvent()
                             {
-                                ProgramNumber = (SevenBitNumber)inst,
+                                ProgramNumber = (SevenBitNumber)inst_midi,
                                 Channel = (FourBitNumber)channel,
                             };
                             timedEvent = new TimedEvent(channelEvent, seqTimestamp + channelTimestamp);
