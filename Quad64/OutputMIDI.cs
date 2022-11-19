@@ -11,6 +11,15 @@ using System.Text.Json;
 
 namespace Quad64
 {
+    class MasterTrackChunk
+    {
+        public TrackChunk trackChunk;
+        public int channel;
+        public XmlNode item;
+        public JsonElement inst;
+        public int rawInst;
+    }
+
     internal class OutputMIDI
     {
         MidiFile midiFile = new MidiFile();
@@ -21,6 +30,9 @@ namespace Quad64
 
         XmlNode indexentry;
         JsonElement instrument_list;
+        JsonElement instruments;
+
+        List<MasterTrackChunk> masterTrackChunks = new List<MasterTrackChunk>();
 
         public MidiFile ConvertToMIDI(Sequence seq)
         {
@@ -37,18 +49,99 @@ namespace Quad64
             string jsonText = File.ReadAllText($"../../../../instrument/sound_banks/{jsonFile}");
             JsonDocument json = JsonDocument.Parse(jsonText);
             instrument_list = json.RootElement.GetProperty("instrument_list");
+            instruments = json.RootElement.GetProperty("instruments");
 
             for(int i = 0; i < 16; i++)
             {
-                midiFile.Chunks.Add(new TrackChunk());
+                TrackChunk trackChunk = new TrackChunk();
+                midiFile.Chunks.Add(trackChunk);
+
+                MasterTrackChunk masterTrackChunk = new MasterTrackChunk();
+                masterTrackChunks.Add(masterTrackChunk);
+                masterTrackChunk.trackChunk = trackChunk;
+                masterTrackChunk.channel = i;
             }
 
             ParseSequence(br);
+
+            // ドラムの音符の調整
+            foreach(var masterTrackChunk in masterTrackChunks)
+            {
+                if(masterTrackChunk.rawInst == 0x7f)
+                {
+                    // general percussion
+                    continue;
+                }
+                if(masterTrackChunk.item != null)
+                {
+                    if (masterTrackChunk.item.Attributes["map"].InnerText == "drum")
+                    {
+                        // other drums
+                        DrumProcess(masterTrackChunk);
+                    }
+                }
+            }
 
             // 4分音符あたりのtick数
             midiFile.TimeDivision = new TicksPerQuarterNoteTimeDivision(48);
 
             return midiFile;
+        }
+
+        public class Inst
+        {
+            public int release_rate { get; set; }
+            public int normal_range_lo { get; set; }
+            public int normal_range_hi { get; set; }
+            public string envelope { get; set; }
+            public string sound_lo { get; set; }
+            public string sound { get; set; }
+            public string sound_hi { get; set; }
+        }
+
+        void DrumProcess(MasterTrackChunk masterTrackChunk)
+        {
+            int drumsplit1 = int.Parse(masterTrackChunk.item.Attributes["drumsplit1"].InnerText);
+            int drumsplit2 = int.Parse(masterTrackChunk.item.Attributes["drumsplit2"].InnerText);
+            int drumsplit3 = int.Parse(masterTrackChunk.item.Attributes["drumsplit3"].InnerText);
+
+            Inst inst = JsonSerializer.Deserialize<Inst>(masterTrackChunk.inst);
+
+            // ドラムのノートナンバーをセット
+            //TimedObjectsManager<Note> noteManager = masterTrackChunk.trackChunk.Events.ManageNotes();
+            //foreach (Note note in noteManager.Objects)
+            //{
+            //    if(inst.normal_range_lo != 0 && inst.normal_range_lo > note.NoteNumber)
+            //    {
+            //        note.NoteNumber = (SevenBitNumber)drumsplit1;
+            //    }
+            //    else if(inst.normal_range_hi != 0 && inst.normal_range_hi < note.NoteNumber)
+            //    {
+            //        note.NoteNumber = (SevenBitNumber)drumsplit3;
+            //    }
+            //    else
+            //    {
+            //        note.NoteNumber = (SevenBitNumber)drumsplit2;
+            //    }
+            //}
+            //noteManager.SaveChanges();
+
+            // ドラムパートに変更
+            //TimedObjectsManager<TimedEvent> tom = masterTrackChunk.trackChunk.ManageTimedEvents();
+            //MidiEvent sysex = new NormalSysExEvent()
+            //{
+            //    Data = new byte[] {  0x41, 0x10, 0x42, 0x12, 0x40, 0x00, 0x7F, 0x00, 0x41, 0xF7 },
+            //};
+            //TimedEvent timed = new TimedEvent(sysex, 0);
+            //tom.Objects.Add(timed);
+            //int channel = masterTrackChunk.channel;
+            //sysex = new NormalSysExEvent()
+            //{
+            //    Data = new byte[] {  0x41, 0x10, 0x42, 0x12, 0x40, (byte)(0x10 + channel), 0x15, 0x02, (byte)(0x19 - channel), 0xF7 },
+            //};
+            //timed = new TimedEvent(sysex, 0);
+            //tom.Objects.Add(timed);
+            //tom.SaveChanges();
         }
 
         void ParseSequence(BinaryDataReader br)
@@ -260,16 +353,36 @@ namespace Quad64
                         case 0xc1:
                             // set instrument
                             int inst = br.ReadByte();
+                            Console.WriteLine(inst);
 
                             // convert inst m64 to midi
                             // extra instrument bankの場合の処理 todo
                             int inst_midi = 0x7f;
                             if (inst != 0x7f)
                             {
-                                string str = instrument_list[inst].ToString().Substring(4);
-                                int inst_xml = int.Parse(str);
-                                XmlNode item = indexentry.SelectSingleNode($"instruments/item[@index={inst_xml}]");
-                                inst_midi = int.Parse(item.Attributes["program"].InnerText);
+                                // クソみたいな処理
+                                // instrument_listのinstまでのnullの数をカウント
+                                int null_count = 0 ;
+                                for(int i = 0; i <= inst; i++)
+                                {
+                                    if (instrument_list[i].ToString() == "")
+                                        null_count++;
+                                }
+                                int xml_inst = inst - null_count;
+
+                                //string str = instrument_list[inst].ToString().Substring(4);
+                                //int inst_xml = int.Parse(str);
+
+                                XmlNode item = indexentry.SelectSingleNode($"instruments/item[@index={xml_inst}]");
+                                if(item.Attributes["map"].InnerText == "program")
+                                {
+                                    inst_midi = int.Parse(item.Attributes["program"].InnerText);
+                                }
+
+                                // for drum after process
+                                masterTrackChunks[channel].item = item;
+                                masterTrackChunks[channel].inst = instruments.GetProperty(instrument_list[inst].ToString());
+                                masterTrackChunks[channel].rawInst = inst;
                             }
 
                             channelEvent = new ProgramChangeEvent()
@@ -444,7 +557,6 @@ namespace Quad64
                         Velocity = (SevenBitNumber)velocity,
                         Channel = (FourBitNumber)channel,
                     };
-                    // 絶対時間の計算が必要 todo
                     timed = new TimedEvent(note, totalTimestamp);
                     tom.Objects.Add(timed);
 
@@ -455,7 +567,6 @@ namespace Quad64
                         Velocity = (SevenBitNumber)0,
                         Channel = (FourBitNumber)channel,
                     };
-                    // 絶対時間の計算が必要 todo
                     
                     timed = new TimedEvent(note, totalTimestamp + timestamp - (timestamp * gatetime) / 255);
                     tom.Objects.Add(timed);
