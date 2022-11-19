@@ -51,7 +51,7 @@ namespace Quad64
             instrument_list = json.RootElement.GetProperty("instrument_list");
             instruments = json.RootElement.GetProperty("instruments");
 
-            for(int i = 0; i < 16; i++)
+            for(int i = 0; i < 17; i++)
             {
                 TrackChunk trackChunk = new TrackChunk();
                 midiFile.Chunks.Add(trackChunk);
@@ -70,9 +70,9 @@ namespace Quad64
                 if(masterTrackChunk.rawInst == 0x7f)
                 {
                     // general percussion
-                    continue;
+                    GeneralPercussionProcess(masterTrackChunk);
                 }
-                if(masterTrackChunk.item != null)
+                else if(masterTrackChunk.item != null)
                 {
                     if (masterTrackChunk.item.Attributes["map"].InnerText == "drum")
                     {
@@ -86,6 +86,76 @@ namespace Quad64
             midiFile.TimeDivision = new TicksPerQuarterNoteTimeDivision(48);
 
             return midiFile;
+        }
+        void GeneralPercussionProcess(MasterTrackChunk masterTrackChunk)
+        {
+            TrackChunk trackChunk = masterTrackChunk.trackChunk;
+            TimedObjectsManager<Note> noteManager = trackChunk.Events.ManageNotes();
+            foreach (Note note in noteManager.Objects)
+            {
+                if (note.NoteNumber <= 36)
+                {
+                    // kick drum
+                    note.NoteNumber = (SevenBitNumber)36;
+                }
+                else if (note.NoteNumber == 37)
+                {
+                    // drum stick
+                    note.NoteNumber = (SevenBitNumber)37;
+                }
+                else if (note.NoteNumber <= 40)
+                {
+                    // snare drum
+                    if (note.NoteNumber == 38)
+                        note.NoteNumber = (SevenBitNumber)38;
+                    else if (note.NoteNumber == 39)
+                        note.NoteNumber = (SevenBitNumber)39;
+                    else if (note.NoteNumber == 40)
+                        note.NoteNumber = (SevenBitNumber)40;
+                }
+                else if (note.NoteNumber <= 53)
+                {
+                    // tom drum
+                    note.NoteNumber = (SevenBitNumber)47; // low mid tom
+                }
+                else if (note.NoteNumber <= 61)
+                {
+                    // tambourine
+                    note.NoteNumber = (SevenBitNumber)54;
+                }
+                else if (note.NoteNumber <= 69)
+                {
+                    // low bongo
+                    note.NoteNumber = (SevenBitNumber)61;
+                }
+                else if (note.NoteNumber <= 71)
+                {
+                    // high bongo
+                    note.NoteNumber = (SevenBitNumber)60;
+                }
+                else if(note.NoteNumber <= 84) 
+                {
+                    // conga stick
+                    note.NoteNumber = (SevenBitNumber)64; // low conga
+                }
+                else if(note.NoteNumber == 85)
+                {
+                    // claves
+                    note.NoteNumber = (SevenBitNumber)75;
+                }
+            }
+            noteManager.SaveChanges();
+
+            // チャンネル10に変更
+            var timed = trackChunk.ManageTimedEvents();
+            foreach (var obj in timed.Objects)
+            {
+                if (obj.Event is ChannelEvent)
+                {
+                    ((ChannelEvent)obj.Event).Channel = (FourBitNumber)9;
+                }
+            }
+            timed.SaveChanges();
         }
 
         public class Inst
@@ -101,6 +171,8 @@ namespace Quad64
 
         void DrumProcess(MasterTrackChunk masterTrackChunk)
         {
+            TrackChunk trackChunk = masterTrackChunk.trackChunk;
+
             int drumsplit1 = int.Parse(masterTrackChunk.item.Attributes["drumsplit1"].InnerText);
             int drumsplit2 = int.Parse(masterTrackChunk.item.Attributes["drumsplit2"].InnerText);
             int drumsplit3 = int.Parse(masterTrackChunk.item.Attributes["drumsplit3"].InnerText);
@@ -108,23 +180,34 @@ namespace Quad64
             Inst inst = JsonSerializer.Deserialize<Inst>(masterTrackChunk.inst);
 
             // ドラムのノートナンバーをセット
-            //TimedObjectsManager<Note> noteManager = masterTrackChunk.trackChunk.Events.ManageNotes();
-            //foreach (Note note in noteManager.Objects)
-            //{
-            //    if(inst.normal_range_lo != 0 && inst.normal_range_lo > note.NoteNumber)
-            //    {
-            //        note.NoteNumber = (SevenBitNumber)drumsplit1;
-            //    }
-            //    else if(inst.normal_range_hi != 0 && inst.normal_range_hi < note.NoteNumber)
-            //    {
-            //        note.NoteNumber = (SevenBitNumber)drumsplit3;
-            //    }
-            //    else
-            //    {
-            //        note.NoteNumber = (SevenBitNumber)drumsplit2;
-            //    }
-            //}
-            //noteManager.SaveChanges();
+            TimedObjectsManager<Note> noteManager = trackChunk.Events.ManageNotes();
+            foreach (Note note in noteManager.Objects)
+            {
+                if (inst.normal_range_lo != 0 && inst.normal_range_lo > note.NoteNumber - 21)
+                {
+                    note.NoteNumber = (SevenBitNumber)drumsplit1;
+                }
+                else if (inst.normal_range_hi != 0 && inst.normal_range_hi < note.NoteNumber - 21)
+                {
+                    note.NoteNumber = (SevenBitNumber)drumsplit3;
+                }
+                else
+                {
+                    note.NoteNumber = (SevenBitNumber)drumsplit2;
+                }
+            }
+            noteManager.SaveChanges();
+
+            // チャンネル10に変更
+            var timed = trackChunk.ManageTimedEvents();
+            foreach(var obj in timed.Objects)
+            {
+                if(obj.Event is ChannelEvent)
+                {
+                    ((ChannelEvent)obj.Event).Channel = (FourBitNumber)9;
+                }
+            }
+            timed.SaveChanges();
 
             // ドラムパートに変更
             //TimedObjectsManager<TimedEvent> tom = masterTrackChunk.trackChunk.ManageTimedEvents();
@@ -238,6 +321,19 @@ namespace Quad64
                             ushort channelOffset = br.ReadUInt16();
                             long returnOffset = br.BaseStream.Position;
                             br.BaseStream.Position = channelOffset;
+
+                            
+                            if(loBits == 9)
+                            {
+                                // 10チャネルなら別の空いてるチャンネルに移行
+                                // 埋まってる場合がある
+                                //MasterTrackChunk masterChunk = masterTrackChunks.First(master => master.trackChunk.Events.Count == 0);
+                                //loBits = masterChunk.channel;
+
+                                // チャンネル16に割当
+                                loBits = 15;
+                            }
+
                             ParseChannel(br, loBits);
                             br.BaseStream.Position = returnOffset;
                             break;
@@ -379,11 +475,12 @@ namespace Quad64
                                     inst_midi = int.Parse(item.Attributes["program"].InnerText);
                                 }
 
-                                // for drum after process
+                                // for other drums
                                 masterTrackChunks[channel].item = item;
                                 masterTrackChunks[channel].inst = instruments.GetProperty(instrument_list[inst].ToString());
-                                masterTrackChunks[channel].rawInst = inst;
                             }
+                            // for general percussion
+                            masterTrackChunks[channel].rawInst = inst;
 
                             channelEvent = new ProgramChangeEvent()
                             {
