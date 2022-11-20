@@ -11,6 +11,8 @@ namespace Quad64
         BinaryDataReader br;
         public string romName;
 
+        public Dictionary<byte, byte[]> segData = new Dictionary<byte, byte[]>();
+
         public List<Sequence> sequences = new List<Sequence>();
         int seqCount;
 
@@ -23,7 +25,6 @@ namespace Quad64
 
             // romNameの取得
             br.BaseStream.Position = 0x20;
-            //romName = br.ReadString(StringDataFormat.ZeroTerminated);
             romName = br.ReadString(0x14);
             romName = romName.TrimEnd();
             // if sm74 then modify
@@ -31,6 +32,10 @@ namespace Quad64
             {
                 romName = "SUPER MARIO 74";
             }
+
+            // set segment for level script
+            setSegment(0x15, 0x2ABCA0, 0x2AC6B0, false);
+            setSegment(0x02, 0x108A40, 0x114750, true);
 
             // フォルダ作成
             string path = "../../../../midi/" + romName;
@@ -113,5 +118,54 @@ namespace Quad64
                 }
             }
         }
+
+        public void setSegment(byte seg, uint start, uint end, bool mio0)
+        {
+            uint size = end - start;
+            byte[] data = new byte[size];
+            Array.Copy(bytes, start, data, 0, size);
+
+            if (mio0)
+                data = MIO0.mio0_decode(data);
+
+            if (segData.ContainsKey(seg))
+                segData.Remove(seg);
+            segData.Add(seg, data);
+        }
+
+        public static Dictionary<string, ushort> levelIDs = new Dictionary<string, ushort>
+        {
+            { "[C01] Bob-omb Battlefield", 0x09 },
+            { "[C02] Whomp's Fortress", 0x18 },
+            { "[C03] Jolly Roger Bay", 0x0C },
+            { "[C04] Cool Cool Mountain", 0x05 },
+            { "[C05] Big Boo's Haunt", 0x04 },
+            { "[C06] Hazy Maze Cave", 0x07 },
+            { "[C07] Lethal Lava Land", 0x16 },
+            { "[C08] Shifting Sand Land", 0x08 },
+            { "[C09] Dire Dire Docks", 0x17 },
+            { "[C10] Snowman's Land", 0x0A },
+            { "[C11] Wet Dry World", 0x0B },
+            { "[C12] Tall Tall Mountain", 0x24 },
+            { "[C13] Tiny Huge Island", 0x0D },
+            { "[C14] Tick Tock Clock", 0x0E },
+            { "[C15] Rainbow Ride", 0x0F },
+            { "[OW1] Castle Grounds", 0x10 },
+            { "[OW2] Inside Castle", 0x06 },
+            { "[OW3] Castle Courtyard", 0x1A },
+            { "[BC1] Bowser Course 1", 0x11 },
+            { "[BC2] Bowser Course 2", 0x13 },
+            { "[BC3] Bowser Course 3", 0x15 },
+            { "[MCL] Metal Cap", 0x1C },
+            { "[WCL] Wing Cap", 0x1D },
+            { "[VCL] Vanish Cap", 0x12 },
+            { "[BB1] Bowser Battle 1", 0x1E },
+            { "[BB2] Bowser Battle 2", 0x21 },
+            { "[BB3] Bowser Battle 3", 0x22 },
+            { "[SC1] Secret Aquarium", 0x14 },
+            { "[SC2] Rainbow Clouds", 0x1F },
+            { "[SC3] End Cake Picture", 0x19 },
+            { "[SlC] Peach's Secret Slide", 0x1B }
+        };
     }
 }

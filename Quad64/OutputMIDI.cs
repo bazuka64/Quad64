@@ -87,145 +87,6 @@ namespace Quad64
 
             return midiFile;
         }
-        void GeneralPercussionProcess(MasterTrackChunk masterTrackChunk)
-        {
-            TrackChunk trackChunk = masterTrackChunk.trackChunk;
-            TimedObjectsManager<Note> noteManager = trackChunk.Events.ManageNotes();
-            foreach (Note note in noteManager.Objects)
-            {
-                if (note.NoteNumber <= 36)
-                {
-                    // kick drum
-                    note.NoteNumber = (SevenBitNumber)36;
-                }
-                else if (note.NoteNumber == 37)
-                {
-                    // drum stick
-                    note.NoteNumber = (SevenBitNumber)37;
-                }
-                else if (note.NoteNumber <= 40)
-                {
-                    // snare drum
-                    if (note.NoteNumber == 38)
-                        note.NoteNumber = (SevenBitNumber)38;
-                    else if (note.NoteNumber == 39)
-                        note.NoteNumber = (SevenBitNumber)39;
-                    else if (note.NoteNumber == 40)
-                        note.NoteNumber = (SevenBitNumber)40;
-                }
-                else if (note.NoteNumber <= 53)
-                {
-                    // tom drum
-                    note.NoteNumber = (SevenBitNumber)47; // low mid tom
-                }
-                else if (note.NoteNumber <= 61)
-                {
-                    // tambourine
-                    note.NoteNumber = (SevenBitNumber)54;
-                }
-                else if (note.NoteNumber <= 69)
-                {
-                    // low bongo
-                    note.NoteNumber = (SevenBitNumber)61;
-                }
-                else if (note.NoteNumber <= 71)
-                {
-                    // high bongo
-                    note.NoteNumber = (SevenBitNumber)60;
-                }
-                else if(note.NoteNumber <= 84) 
-                {
-                    // conga stick
-                    note.NoteNumber = (SevenBitNumber)64; // low conga
-                }
-                else if(note.NoteNumber == 85)
-                {
-                    // claves
-                    note.NoteNumber = (SevenBitNumber)75;
-                }
-            }
-            noteManager.SaveChanges();
-
-            // チャンネル10に変更
-            var timed = trackChunk.ManageTimedEvents();
-            foreach (var obj in timed.Objects)
-            {
-                if (obj.Event is ChannelEvent)
-                {
-                    ((ChannelEvent)obj.Event).Channel = (FourBitNumber)9;
-                }
-            }
-            timed.SaveChanges();
-        }
-
-        public class Inst
-        {
-            public int release_rate { get; set; }
-            public int normal_range_lo { get; set; }
-            public int normal_range_hi { get; set; }
-            public string envelope { get; set; }
-            public string sound_lo { get; set; }
-            public string sound { get; set; }
-            public string sound_hi { get; set; }
-        }
-
-        void DrumProcess(MasterTrackChunk masterTrackChunk)
-        {
-            TrackChunk trackChunk = masterTrackChunk.trackChunk;
-
-            int drumsplit1 = int.Parse(masterTrackChunk.item.Attributes["drumsplit1"].InnerText);
-            int drumsplit2 = int.Parse(masterTrackChunk.item.Attributes["drumsplit2"].InnerText);
-            int drumsplit3 = int.Parse(masterTrackChunk.item.Attributes["drumsplit3"].InnerText);
-
-            Inst inst = JsonSerializer.Deserialize<Inst>(masterTrackChunk.inst);
-
-            // ドラムのノートナンバーをセット
-            TimedObjectsManager<Note> noteManager = trackChunk.Events.ManageNotes();
-            foreach (Note note in noteManager.Objects)
-            {
-                if (inst.normal_range_lo != 0 && inst.normal_range_lo > note.NoteNumber - 21)
-                {
-                    note.NoteNumber = (SevenBitNumber)drumsplit1;
-                }
-                else if (inst.normal_range_hi != 0 && inst.normal_range_hi < note.NoteNumber - 21)
-                {
-                    note.NoteNumber = (SevenBitNumber)drumsplit3;
-                }
-                else
-                {
-                    note.NoteNumber = (SevenBitNumber)drumsplit2;
-                }
-            }
-            noteManager.SaveChanges();
-
-            // チャンネル10に変更
-            var timed = trackChunk.ManageTimedEvents();
-            foreach(var obj in timed.Objects)
-            {
-                if(obj.Event is ChannelEvent)
-                {
-                    ((ChannelEvent)obj.Event).Channel = (FourBitNumber)9;
-                }
-            }
-            timed.SaveChanges();
-
-            // ドラムパートに変更
-            //TimedObjectsManager<TimedEvent> tom = masterTrackChunk.trackChunk.ManageTimedEvents();
-            //MidiEvent sysex = new NormalSysExEvent()
-            //{
-            //    Data = new byte[] {  0x41, 0x10, 0x42, 0x12, 0x40, 0x00, 0x7F, 0x00, 0x41, 0xF7 },
-            //};
-            //TimedEvent timed = new TimedEvent(sysex, 0);
-            //tom.Objects.Add(timed);
-            //int channel = masterTrackChunk.channel;
-            //sysex = new NormalSysExEvent()
-            //{
-            //    Data = new byte[] {  0x41, 0x10, 0x42, 0x12, 0x40, (byte)(0x10 + channel), 0x15, 0x02, (byte)(0x19 - channel), 0xF7 },
-            //};
-            //timed = new TimedEvent(sysex, 0);
-            //tom.Objects.Add(timed);
-            //tom.SaveChanges();
-        }
 
         void ParseSequence(BinaryDataReader br)
         {
@@ -683,6 +544,146 @@ namespace Quad64
                 num |= br.ReadByte();
             }
             return num;
+        }
+
+        void GeneralPercussionProcess(MasterTrackChunk masterTrackChunk)
+        {
+            TrackChunk trackChunk = masterTrackChunk.trackChunk;
+            TimedObjectsManager<Note> noteManager = trackChunk.Events.ManageNotes();
+            foreach (Note note in noteManager.Objects)
+            {
+                if (note.NoteNumber <= 36)
+                {
+                    // kick drum
+                    note.NoteNumber = (SevenBitNumber)36;
+                }
+                else if (note.NoteNumber == 37)
+                {
+                    // drum stick
+                    note.NoteNumber = (SevenBitNumber)37;
+                }
+                else if (note.NoteNumber <= 40)
+                {
+                    // snare drum
+                    if (note.NoteNumber == 38)
+                        note.NoteNumber = (SevenBitNumber)38;
+                    else if (note.NoteNumber == 39)
+                        note.NoteNumber = (SevenBitNumber)39;
+                    else if (note.NoteNumber == 40)
+                        note.NoteNumber = (SevenBitNumber)40;
+                }
+                else if (note.NoteNumber <= 53)
+                {
+                    // tom drum
+                    note.NoteNumber = (SevenBitNumber)47; // low mid tom
+                }
+                else if (note.NoteNumber <= 61)
+                {
+                    // tambourine
+                    note.NoteNumber = (SevenBitNumber)54;
+                }
+                else if (note.NoteNumber <= 69)
+                {
+                    // low bongo
+                    note.NoteNumber = (SevenBitNumber)61;
+                }
+                else if (note.NoteNumber <= 71)
+                {
+                    // high bongo
+                    note.NoteNumber = (SevenBitNumber)60;
+                }
+                else if (note.NoteNumber <= 84)
+                {
+                    // conga stick
+                    note.NoteNumber = (SevenBitNumber)64; // low conga
+                }
+                else if (note.NoteNumber == 85)
+                {
+                    // claves
+                    note.NoteNumber = (SevenBitNumber)75;
+                }
+            }
+            noteManager.SaveChanges();
+
+            // チャンネル10に変更
+            var timed = trackChunk.ManageTimedEvents();
+            foreach (var obj in timed.Objects)
+            {
+                if (obj.Event is ChannelEvent)
+                {
+                    ((ChannelEvent)obj.Event).Channel = (FourBitNumber)9;
+                }
+            }
+            timed.SaveChanges();
+        }
+
+        public class Inst
+        {
+            public int release_rate { get; set; }
+            public int normal_range_lo { get; set; }
+            public int normal_range_hi { get; set; }
+            public string envelope { get; set; }
+            public string sound_lo { get; set; }
+            public string sound { get; set; }
+            public string sound_hi { get; set; }
+        }
+
+        void DrumProcess(MasterTrackChunk masterTrackChunk)
+        {
+            TrackChunk trackChunk = masterTrackChunk.trackChunk;
+
+            int drumsplit1 = int.Parse(masterTrackChunk.item.Attributes["drumsplit1"].InnerText);
+            int drumsplit2 = int.Parse(masterTrackChunk.item.Attributes["drumsplit2"].InnerText);
+            int drumsplit3 = int.Parse(masterTrackChunk.item.Attributes["drumsplit3"].InnerText);
+
+            Inst inst = JsonSerializer.Deserialize<Inst>(masterTrackChunk.inst);
+
+            // ドラムのノートナンバーをセット
+            TimedObjectsManager<Note> noteManager = trackChunk.Events.ManageNotes();
+            foreach (Note note in noteManager.Objects)
+            {
+                if (inst.normal_range_lo != 0 && inst.normal_range_lo > note.NoteNumber - 21)
+                {
+                    note.NoteNumber = (SevenBitNumber)drumsplit1;
+                }
+                else if (inst.normal_range_hi != 0 && inst.normal_range_hi < note.NoteNumber - 21)
+                {
+                    note.NoteNumber = (SevenBitNumber)drumsplit3;
+                }
+                else
+                {
+                    note.NoteNumber = (SevenBitNumber)drumsplit2;
+                }
+            }
+            noteManager.SaveChanges();
+
+            // チャンネル10に変更
+            var timed = trackChunk.ManageTimedEvents();
+            foreach (var obj in timed.Objects)
+            {
+                if (obj.Event is ChannelEvent)
+                {
+                    ((ChannelEvent)obj.Event).Channel = (FourBitNumber)9;
+                }
+            }
+            timed.SaveChanges();
+
+            // ドラムパートに変更
+            //TimedObjectsManager<TimedEvent> tom = masterTrackChunk.trackChunk.ManageTimedEvents();
+            //MidiEvent sysex = new NormalSysExEvent()
+            //{
+            //    Data = new byte[] {  0x41, 0x10, 0x42, 0x12, 0x40, 0x00, 0x7F, 0x00, 0x41, 0xF7 },
+            //};
+            //TimedEvent timed = new TimedEvent(sysex, 0);
+            //tom.Objects.Add(timed);
+            //int channel = masterTrackChunk.channel;
+            //sysex = new NormalSysExEvent()
+            //{
+            //    Data = new byte[] {  0x41, 0x10, 0x42, 0x12, 0x40, (byte)(0x10 + channel), 0x15, 0x02, (byte)(0x19 - channel), 0xF7 },
+            //};
+            //timed = new TimedEvent(sysex, 0);
+            //tom.Objects.Add(timed);
+            //tom.SaveChanges();
         }
     }
 }

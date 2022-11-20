@@ -11,12 +11,13 @@ namespace Quad64
     {
         ImGuiController imGuiController;
         bool resize = true;
-        const int uiWidth = 2;
+        const int uiWidth = 4;
         int currentRomIndex = -1;
         int currentSeqIndex = -1;
         ImFontPtr font;
 
         string[] romPaths;
+        Level level;
 
         public Window(GameWindowSettings gameWindowSettings, NativeWindowSettings nativeWindowSettings) : base(gameWindowSettings, nativeWindowSettings)
         {
@@ -34,6 +35,12 @@ namespace Quad64
             romPaths = Directory.GetFiles(System.Environment.GetFolderPath(Environment.SpecialFolder.DesktopDirectory) + "/roms/");
         }
 
+        void loadLevel(int levelID)
+        {
+            level = new Level(levelID);
+            LevelScripts.parse(level, 0x15, 0);
+        }
+
         protected override void OnRenderFrame(FrameEventArgs args)
         {
             base.OnRenderFrame(args);
@@ -49,7 +56,7 @@ namespace Quad64
             if (resize)
             {
                 ImGui.SetNextWindowPos(System.Numerics.Vector2.Zero);
-                ImGui.SetNextWindowSize(new System.Numerics.Vector2(Size.X/ uiWidth, Size.Y));
+                ImGui.SetNextWindowSize(new System.Numerics.Vector2(Size.X/ uiWidth, Size.Y/2));
             }
             ImGui.SetNextWindowCollapsed(false, ImGuiCond.Once);
             ImGui.Begin("Rom");
@@ -78,10 +85,30 @@ namespace Quad64
             }
             ImGui.End();
 
+            // imgui Level list
+            if (resize)
+            {
+                ImGui.SetNextWindowPos(new System.Numerics.Vector2(0, Size.Y/2));
+                ImGui.SetNextWindowSize(new System.Numerics.Vector2(Size.X / uiWidth, Size.Y / 2));
+            }
+            ImGui.SetNextWindowCollapsed(false, ImGuiCond.Once);
+            ImGui.Begin("Level");
+            if(ROM.Instance != null)
+            {
+                foreach(var levelID in ROM.levelIDs)
+                {
+                    if (ImGui.Button(levelID.Key))
+                    {
+                        loadLevel(levelID.Value);
+                    }
+                }
+            }
+            ImGui.End();
+
             // imgui Sequence list
             if (resize)
             {
-                ImGui.SetNextWindowPos(new System.Numerics.Vector2(Size.X/ uiWidth, 0));
+                ImGui.SetNextWindowPos(new System.Numerics.Vector2(Size.X - Size.X/ uiWidth, 0));
                 ImGui.SetNextWindowSize(new System.Numerics.Vector2(Size.X / uiWidth, Size.Y));
             }
             ImGui.SetNextWindowCollapsed(false, ImGuiCond.Once);
