@@ -2,8 +2,8 @@
 {
     internal class Model3D
     {
-        public byte ModelID {get;set;}
-        public uint GeoAddress { get; set; }
-
+        public byte modelID;
+        public uint geoAddress;
+        public uint dlAddress;
     }
 }

@@ -317,7 +317,7 @@ namespace Quad64
                             int inst_midi = 0x7f;
                             if (inst != 0x7f)
                             {
-                                // クソみたいな処理
+                                // xml_inst: null抜きで何番目か
                                 // instrument_listのinstまでのnullの数をカウント
                                 int null_count = 0 ;
                                 for(int i = 0; i <= inst; i++)

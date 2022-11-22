@@ -2,7 +2,10 @@
 {
     internal class Level
     {
-        int levelID;
+        public int levelID;
+        public Area[] areas = new Area[8];
+
+        public int curAreaID = -1;
 
         public Level(int levelID)
         {

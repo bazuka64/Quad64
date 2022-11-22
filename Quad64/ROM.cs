@@ -8,7 +8,7 @@ namespace Quad64
 
         byte[] bytes;
         MemoryStream ms;
-        BinaryDataReader br;
+        public BinaryDataReader br;
         public string romName;
 
         public Dictionary<byte, byte[]> segData = new Dictionary<byte, byte[]>();
@@ -121,6 +121,9 @@ namespace Quad64
 
         public void setSegment(byte seg, uint start, uint end, bool mio0)
         {
+            // error
+            if (start > end) return;
+
             uint size = end - start;
             byte[] data = new byte[size];
             Array.Copy(bytes, start, data, 0, size);
@@ -133,6 +136,7 @@ namespace Quad64
             segData.Add(seg, data);
         }
 
+        // これ以外にもレベルIDが存在すると思われる
         public static Dictionary<string, ushort> levelIDs = new Dictionary<string, ushort>
         {
             { "[C01] Bob-omb Battlefield", 0x09 },

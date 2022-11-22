@@ -14,6 +14,7 @@ namespace Quad64
         const int uiWidth = 4;
         int currentRomIndex = -1;
         int currentSeqIndex = -1;
+        int currentLevelIndex = -1;
         ImFontPtr font;
 
         string[] romPaths;
@@ -37,8 +38,10 @@ namespace Quad64
 
         void loadLevel(int levelID)
         {
-            level = new Level(levelID);
-            LevelScripts.parse(level, 0x15, 0);
+            Level testLevel = new Level(levelID);
+            LevelScripts.parse(testLevel, 0x15, 0);
+            if (testLevel.areas.Length != 0)
+                level = testLevel;
         }
 
         protected override void OnRenderFrame(FrameEventArgs args)
@@ -75,6 +78,7 @@ namespace Quad64
                     ROM.Instance = new ROM(romPaths[i]);
                     currentRomIndex = i;
                     currentSeqIndex = -1;
+                    currentLevelIndex = -1;
                 }
                 if (selected)
                 {
@@ -95,12 +99,28 @@ namespace Quad64
             ImGui.Begin("Level");
             if(ROM.Instance != null)
             {
+                int i = 0;
                 foreach(var levelID in ROM.levelIDs)
                 {
+                    bool selected = currentLevelIndex == i;
+                    if (selected)
+                    {
+                        ImGui.PushStyleColor(ImGuiCol.Button, 0x8000FF00);
+                        ImGui.PushStyleColor(ImGuiCol.ButtonActive, 0x8000FF00);
+                        ImGui.PushStyleColor(ImGuiCol.ButtonHovered, 0x8000FF00);
+                    }
                     if (ImGui.Button(levelID.Key))
                     {
                         loadLevel(levelID.Value);
+                        currentLevelIndex = i;
                     }
+                    if (selected)
+                    {
+                        ImGui.PopStyleColor();
+                        ImGui.PopStyleColor();
+                        ImGui.PopStyleColor();
+                    }
+                    i++;
                 }
             }
             ImGui.End();
