@@ -5,5 +5,7 @@
         public byte modelID;
         public uint geoAddress;
         public uint dlAddress;
+
+        public GraphNode rootNode = null;
     }
 }

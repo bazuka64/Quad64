@@ -159,10 +159,14 @@ namespace Quad64
                             lvl.areas[areaID] = area;
                             lvl.curAreaID = areaID;
 
-                            // todo GeoScripts.parse()
-
                             // 専用のsegment 0x0Eをspecial object用に
                             setAreaSegmented0xE(areaID, data);
+
+                            area.model.rootNode = new GraphNode();
+                            byte seg = (byte)((address & 0xFF000000) >> 24);
+                            uint off = address & 0x00FFFFFF;
+                            GeoScripts.parse(area.model.rootNode, seg, off);
+
                         }
                         break;
                     case 0x20:
@@ -198,7 +202,21 @@ namespace Quad64
                                 geoAddress = address,
                             };
 
-                            // todo GeoScripts.parse()
+                            // if mario model then skip
+                            if (modelID == 0x01)
+                                break;
+                            model.rootNode = new GraphNode();
+                            byte seg = (byte)((address & 0xFF000000) >> 24);
+                            uint off = address & 0x00FFFFFF;
+
+                            try
+                            {
+                                GeoScripts.parse(model.rootNode, seg, off);
+                            }
+                            catch(Exception ex)
+                            {
+
+                            }
                         }
                         break;
                     case 0x24:

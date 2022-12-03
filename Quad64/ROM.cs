@@ -40,7 +40,7 @@ namespace Quad64
             uint seg2start = 0x108A40;
             uint seg2end = 0x114750;
             // through the ages 15seg start:2E3D30 end:2E47B0
-            //                  02seg start:0EB390 end:0F6570 おそらく
+            //                  02seg start:0EB390 end:0F6570 maybe
             if (romName == "THROUGH THE AGES")
             {
                 seg15start = 0x2E3D30;
