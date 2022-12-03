@@ -12,6 +12,7 @@ namespace Quad64
         public string romName;
 
         public Dictionary<byte, byte[]> segData = new Dictionary<byte, byte[]>();
+        public byte[] segData0E;
 
         public List<Sequence> sequences = new List<Sequence>();
         int seqCount;
@@ -34,8 +35,21 @@ namespace Quad64
             }
 
             // set segment for level script
-            setSegment(0x15, 0x2ABCA0, 0x2AC6B0, false);
-            setSegment(0x02, 0x108A40, 0x114750, true);
+            uint seg15start = 0x2ABCA0;
+            uint seg15end = 0x2AC6B0;
+            uint seg2start = 0x108A40;
+            uint seg2end = 0x114750;
+            // through the ages 15seg start:2E3D30 end:2E47B0
+            //                  02seg start:0EB390 end:0F6570 おそらく
+            if (romName == "THROUGH THE AGES")
+            {
+                seg15start = 0x2E3D30;
+                seg15end   = 0x2E47B0;
+                seg2start  = 0x0EB390;
+                seg2end    = 0x0F6570;
+            }
+            setSegment(0x15, seg15start, seg15end, false);
+            setSegment(0x02, seg2start, seg2end, true);
 
             // フォルダ作成
             string path = "../../../../midi/" + romName;
@@ -134,6 +148,15 @@ namespace Quad64
             if (segData.ContainsKey(seg))
                 segData.Remove(seg);
             segData.Add(seg, data);
+        }
+
+        public void setSegment0E(uint start, uint end)
+        {
+            uint size = end - start;
+            byte[] data = new byte[size];
+            Array.Copy(bytes, start, data, 0, size);
+
+            segData0E = data;
         }
 
         // これ以外にもレベルIDが存在すると思われる

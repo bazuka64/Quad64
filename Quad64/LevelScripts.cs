@@ -160,6 +160,9 @@ namespace Quad64
                             lvl.curAreaID = areaID;
 
                             // todo GeoScripts.parse()
+
+                            // 専用のsegment 0x0Eをspecial object用に
+                            setAreaSegmented0xE(areaID, data);
                         }
                         break;
                     case 0x20:
@@ -288,6 +291,29 @@ namespace Quad64
             }
         }
 
+        private static bool isPerAreaBank0E(byte[] segData)
+        {
+            if (segData.Length < 0x6000) return false;
+            uint offset = 0x5FFC;
+            return ((segData[0 + offset] << 24 | segData[1 + offset] << 16 | segData[2 + offset] << 8 | segData[3 + offset]) == 0x4BC9189A);
+        }
+
+        private static void setAreaSegmented0xE(byte areaID, byte[] segData)
+        {
+            if (!isPerAreaBank0E(segData))
+                return;
+
+            uint start, end;
+
+            uint offset = 0x5F00 + (uint)areaID * 0x10;
+            start = (uint)((segData[offset] << 24) | (segData[offset + 1] << 16) | (segData[offset + 2] << 8) | segData[offset + 3]);
+
+            offset += 4;
+            end = (uint)((segData[offset] << 24) | (segData[offset + 1] << 16) | (segData[offset + 2] << 8) | segData[offset + 3]);
+
+            ROM.Instance.setSegment0E(start, end);
+        }
+
         static void CMD_2E(Level lvl, uint segAddr)
         {
             ROM rom = ROM.Instance;
@@ -295,7 +321,18 @@ namespace Quad64
             byte seg = (byte)(segAddr >> 24);
             uint off = segAddr & 0x00FFFFFF;
 
-            byte[] data = rom.segData[seg];
+            byte[] data;
+            if(rom.segData0E != null && seg == 0x0E)
+            {
+                // 特殊
+                data = rom.segData0E;
+            }
+            else
+            {
+                // 一般
+                data = rom.segData[seg];
+            }
+
             BinaryDataReader br = new BinaryDataReader(new MemoryStream(data));
             br.ByteConverter = ByteConverter.BigEndian;
             br.BaseStream.Position = off;
