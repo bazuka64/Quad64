@@ -1,7 +1,7 @@
 ﻿using OpenTK.Mathematics;
 using System.Collections.Generic;
 
-namespace Quad64
+namespace Quad64.src
 {
     internal class Level
     {
@@ -26,7 +26,7 @@ namespace Quad64
         public void drawModels()
         {
             int posX = 0;
-            foreach(var model in models.Values)
+            foreach (var model in models.Values)
             {
                 Matrix4 transform;
 

@@ -1,7 +1,7 @@
 ﻿using OpenTK.Mathematics;
 using System;
 
-namespace Quad64
+namespace Quad64.src
 {
     public class Camera
     {
@@ -14,7 +14,7 @@ namespace Quad64
         float yaw = -MathHelper.PiOver2;
 
         float fov = MathHelper.PiOver4;
-        public float aspect = 4/3f;
+        public float aspect = 4 / 3f;
         float near = 100;
         float far = 100000;
 

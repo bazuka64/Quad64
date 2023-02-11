@@ -1,6 +1,6 @@
 ﻿using OpenTK.Graphics.OpenGL4;
 
-namespace Quad64
+namespace Quad64.src
 {
     public class Texture
     {

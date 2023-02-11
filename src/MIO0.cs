@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace Quad64.lib
+namespace Quad64.src
 {
     struct MIO0_Header
     {

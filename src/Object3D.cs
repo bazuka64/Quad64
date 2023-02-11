@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace Quad64
+namespace Quad64.src
 {
     public class Object3D
     {

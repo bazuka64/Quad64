@@ -1,7 +1,7 @@
 ﻿using Syroot.BinaryData;
 using System.IO;
 
-namespace Quad64
+namespace Quad64.src
 {
     internal class Script
     {

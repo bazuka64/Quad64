@@ -12,7 +12,7 @@ using Syroot.BinaryData;
 // sr8 デザイアドライブ and so on: too
 // ASA p4heartbeat: loop command not implemented
 
-namespace Quad64
+namespace Quad64.src
 {
     class MasterTrackChunk
     {
@@ -149,7 +149,7 @@ namespace Quad64
                             // tempo
                             // bpm: 1分あたりの4分音符数
                             int bpm = br.ReadByte();
-                            long result = (long)((1 / (double)bpm) * 60 * 1000 * 1000);
+                            long result = (long)(1 / (double)bpm * 60 * 1000 * 1000);
                             midiEvent = new SetTempoEvent()
                             {
                                 MicrosecondsPerQuarterNote = result,
@@ -543,7 +543,7 @@ namespace Quad64
                         Channel = (FourBitNumber)channel,
                     };
 
-                    timed = new TimedEvent(note, totalTimestamp + timestamp - (timestamp * gatetime) / 255);
+                    timed = new TimedEvent(note, totalTimestamp + timestamp - timestamp * gatetime / 255);
                     tom.Objects.Add(timed);
 
 
@@ -557,7 +557,7 @@ namespace Quad64
             ushort num = br.Read1Byte();
             if ((num & 0x80) == 0x80)
             {
-                num = (ushort)((num << 8) & 0x7f00);
+                num = (ushort)(num << 8 & 0x7f00);
                 num |= br.Read1Byte();
             }
             return num;
@@ -653,7 +653,7 @@ namespace Quad64
             int drumsplit2 = int.Parse(masterTrackChunk.item.Attributes["drumsplit2"].InnerText);
             int drumsplit3 = int.Parse(masterTrackChunk.item.Attributes["drumsplit3"].InnerText);
 
-            Inst inst = JsonSerializer.Deserialize<Inst>(masterTrackChunk.inst);
+            Inst inst = masterTrackChunk.inst.Deserialize<Inst>();
 
             // ドラムのノートナンバーをセット
             TimedObjectsManager<Note> noteManager = trackChunk.Events.ManageNotes();

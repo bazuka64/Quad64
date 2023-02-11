@@ -4,7 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 
-namespace Quad64
+namespace Quad64.src
 {
     public class Shader
     {
@@ -27,7 +27,7 @@ namespace Quad64
             LinkProgram(program);
 
             GL.GetProgram(program, GetProgramParameterName.ActiveUniforms, out var numberOfUniforms);
-            for(int i = 0; i < numberOfUniforms; i++)
+            for (int i = 0; i < numberOfUniforms; i++)
             {
                 string name = GL.GetActiveUniform(program, i, out _, out _);
                 int location = GL.GetUniformLocation(program, name);
@@ -50,7 +50,7 @@ namespace Quad64
         {
             GL.LinkProgram(program);
             GL.GetProgram(program, GetProgramParameterName.LinkStatus, out var code);
-            if(code != (int)All.True)
+            if (code != (int)All.True)
             {
                 var infoLog = GL.GetProgramInfoLog(program);
                 throw new Exception(infoLog);

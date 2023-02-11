@@ -7,7 +7,7 @@ using System.Drawing;
 using System.IO;
 using ByteConverter = Syroot.BinaryData.ByteConverter;
 
-namespace Quad64
+namespace Quad64.src
 {
     public struct Vertex
     {
@@ -74,11 +74,11 @@ namespace Quad64
                             BinaryStream bsLight = null;
                             setSegmentPosition(ref bsLight, segOff);
 
-                            if(flag == 0x86)
+                            if (flag == 0x86)
                             {
                                 // diffuse light
-                                light.diffuseColor.X =  bsLight.Read1Byte() / (float)0xFF;
-                                light.diffuseColor.Y =  bsLight.Read1Byte() / (float)0xFF;
+                                light.diffuseColor.X = bsLight.Read1Byte() / (float)0xFF;
+                                light.diffuseColor.Y = bsLight.Read1Byte() / (float)0xFF;
                                 light.diffuseColor.Z = bsLight.Read1Byte() / (float)0xFF;
 
                                 bsLight.Position += 5;
@@ -87,7 +87,7 @@ namespace Quad64
                                 light.diffuseDirection.Y = bsLight.ReadSByte() / (float)0x7F;
                                 light.diffuseDirection.Z = bsLight.ReadSByte() / (float)0x7F;
                             }
-                            else if(flag == 0x88)
+                            else if (flag == 0x88)
                             {
                                 // ambient light
                                 light.ambientColor.X = bsLight.Read1Byte() / (float)0xFF;
@@ -114,7 +114,7 @@ namespace Quad64
                                 return meshes;
                             }
 
-                            for(int i=0; i<numVert; i++)
+                            for (int i = 0; i < numVert; i++)
                             {
                                 vertices[vertOff + i].x = bsVert.ReadInt16();
                                 vertices[vertOff + i].y = bsVert.ReadInt16();
@@ -165,7 +165,7 @@ namespace Quad64
                         }
                         break;
                     case 0xb8: // end
-                        if(returnAddr.Count > 0)
+                        if (returnAddr.Count > 0)
                         {
                             bs = returnAddr.Pop();
                             break;
@@ -173,7 +173,7 @@ namespace Quad64
                         else
                         {
                             // build mesh
-                            foreach(var mesh in meshes)
+                            foreach (var mesh in meshes)
                             {
                                 mesh.build();
                             }
@@ -188,7 +188,7 @@ namespace Quad64
 
                             useTexture = flag == 1;
 
-                            if((geometryMode & 0x00040000) > 0)
+                            if ((geometryMode & 0x00040000) > 0)
                             {
                                 width = s >> 6;
                                 height = t >> 6;
@@ -237,7 +237,7 @@ namespace Quad64
                                             Level.instance.textures.Add(textureSegOff, texture);
                                         }
                                     }
-                                    if(Level.instance.textures.ContainsKey(textureSegOff))
+                                    if (Level.instance.textures.ContainsKey(textureSegOff))
                                         curMesh.texture = Level.instance.textures[textureSegOff];
                                 }
 
@@ -251,8 +251,8 @@ namespace Quad64
                                     curMesh.useLight = false;
 
                                 // cullface
-                                curMesh.cullFront = (geometryMode & 0x00001000) > 0; 
-                                curMesh.cullBack =  (geometryMode & 0x00002000) > 0; 
+                                curMesh.cullFront = (geometryMode & 0x00001000) > 0;
+                                curMesh.cullBack = (geometryMode & 0x00002000) > 0;
                             }
 
                             // vertex
@@ -294,7 +294,7 @@ namespace Quad64
                     case 0xf5: // set tile
                         {
                             int t = (cmd[5] & 0b00001100) >> 2;
-                            int s = (cmd[6] & 0b00000011);
+                            int s = cmd[6] & 0b00000011;
 
                             wrapT = getWrap(t);
                             wrapS = getWrap(s);
@@ -324,7 +324,7 @@ namespace Quad64
         {
             switch (wrap)
             {
-                
+
                 case 1:
                     return (int)TextureWrapMode.MirroredRepeat;
                 case 2:

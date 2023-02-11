@@ -6,7 +6,7 @@ using System.Reflection.Emit;
 using System.Windows.Media.Animation;
 using System.Windows.Media.Media3D;
 
-namespace Quad64
+namespace Quad64.src
 {
     public class Model3D
     {
@@ -19,13 +19,13 @@ namespace Quad64
 
         public void draw(Matrix4 transform, Object3D obj)
         {
-            if(root != null)
+            if (root != null)
             {
                 animatedPartCount = 0;
                 curScale = 1;
                 drawNode(root, transform, obj);
             }
-            else if(meshes != null)
+            else if (meshes != null)
             {
                 foreach (var mesh in meshes)
                 {
@@ -39,7 +39,7 @@ namespace Quad64
             // scale
             if (node.scale != 1)
             {
-                if(isArea)
+                if (isArea)
                     transform = Matrix4.CreateScale(node.scale) * transform;
                 curScale *= node.scale;
             }
@@ -59,7 +59,7 @@ namespace Quad64
             }
 
             // rotation
-            if(node.rotX != 0 || node.rotY != 0 || node.rotZ != 0)
+            if (node.rotX != 0 || node.rotY != 0 || node.rotZ != 0)
             {
                 Matrix4 rotateX = Matrix4.CreateRotationX(MathHelper.DegreesToRadians(node.rotX));
                 Matrix4 rotateY = Matrix4.CreateRotationY(MathHelper.DegreesToRadians(node.rotY));
@@ -69,26 +69,26 @@ namespace Quad64
             }
 
             // animated part
-            if(node.isAnim && obj != null && obj.animsAddr != 0)
+            if (node.isAnim && obj != null && obj.animsAddr != 0)
             {
                 processAnim(obj, ref transform);
             }
 
             // display list
-            if(node.meshes != null)
+            if (node.meshes != null)
             {
-                foreach(var mesh in node.meshes)
+                foreach (var mesh in node.meshes)
                 {
                     mesh.draw(transform);
                 }
             }
-            
+
             // children
-            if(node.children != null)
+            if (node.children != null)
             {
                 if (node.isSwitchCase && !isArea)
                 {
-                    if(obj != null)
+                    if (obj != null)
                     {
                         // case coin
                         if (obj.modelID >= 0x74 && obj.modelID <= 0x77 || obj.modelID == 0xd7 || obj.modelID == 0xd8)
@@ -136,7 +136,7 @@ namespace Quad64
                 //}
                 else
                 {
-                    foreach(var child in node.children)
+                    foreach (var child in node.children)
                     {
                         drawNode(child, transform, obj);
                     }
@@ -156,11 +156,11 @@ namespace Quad64
             while (true)
             {
                 animAddr = bs.ReadUInt32();
-                if (animAddr == 0 || (animAddr >> 24) != (obj.animsAddr >> 24)) break;
+                if (animAddr == 0 || animAddr >> 24 != obj.animsAddr >> 24) break;
                 animCount++;
             }
 
-            bs.Position = (obj.animsAddr & 0x00FFFFFF) + (FrameTimer.changeAnimFrame % animCount) * 4;
+            bs.Position = (obj.animsAddr & 0x00FFFFFF) + FrameTimer.changeAnimFrame % animCount * 4;
 
             animAddr = bs.ReadUInt32();
 
@@ -180,19 +180,19 @@ namespace Quad64
             int transXFinalIndex = 0;
             int transYFinalIndex = 0;
             int transZFinalIndex = 0;
-            ushort transXMax  =0;
-            ushort transXIndex=0;
-            ushort transYMax  =0;
-            ushort transYIndex=0;
-            ushort transZMax  =0;
+            ushort transXMax = 0;
+            ushort transXIndex = 0;
+            ushort transYMax = 0;
+            ushort transYIndex = 0;
+            ushort transZMax = 0;
             ushort transZIndex = 0;
             if (animatedPartCount == 0)
             {
-                transXMax   = bs.ReadUInt16();
+                transXMax = bs.ReadUInt16();
                 transXIndex = bs.ReadUInt16();
-                transYMax   = bs.ReadUInt16();
+                transYMax = bs.ReadUInt16();
                 transYIndex = bs.ReadUInt16();
-                transZMax   = bs.ReadUInt16();
+                transZMax = bs.ReadUInt16();
                 transZIndex = bs.ReadUInt16();
 
                 transXFinalIndex = transXIndex + FrameTimer.animFrame % transXMax;

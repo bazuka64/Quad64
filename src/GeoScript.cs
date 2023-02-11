@@ -4,7 +4,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Text;
 
-namespace Quad64
+namespace Quad64.src
 {
     internal class GeoScript : Script
     {
@@ -59,7 +59,7 @@ namespace Quad64
                         }
                         break;
                     case 0x01: // end
-                        if(endAddr.Count > 0)
+                        if (endAddr.Count > 0)
                         {
                             bs = endAddr.Pop();
                             break;
@@ -87,7 +87,7 @@ namespace Quad64
                         curNode.children = new List<GraphNode>();
                         break;
                     case 0x05: // close node
-                        curNode =  parentNodes.Pop();
+                        curNode = parentNodes.Pop();
                         break;
                     case 0x0a: // set camera frustum
                         createNode();
@@ -96,7 +96,7 @@ namespace Quad64
                         break;
                     case 0x0b: // start geo layout
                         createNode();
-                        
+
                         break;
                     case 0x0d: // rander range
                         createNode();

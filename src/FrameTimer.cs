@@ -1,7 +1,7 @@
 ﻿
 using System;
 
-namespace Quad64
+namespace Quad64.src
 {
     internal class FrameTimer
     {
@@ -27,14 +27,14 @@ namespace Quad64
             timer += obj.Milliseconds;
 
             animTimer += obj.Milliseconds;
-            if(animTimer > 1000 / (float)animFPS)
+            if (animTimer > 1000 / (float)animFPS)
             {
                 animFrame++;
                 animTimer = 0;
             }
 
             changeAnimTimer += obj.Milliseconds;
-            if (changeAnimTimer > 1000 / (float)changeAnimFPS)
+            if (changeAnimTimer > 1000 / changeAnimFPS)
             {
                 changeAnimFrame++;
                 changeAnimTimer = 0;

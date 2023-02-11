@@ -1,6 +1,6 @@
 ﻿using System.Collections.Generic;
 
-namespace Quad64
+namespace Quad64.src
 {
     public class GraphNode
     {

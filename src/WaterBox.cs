@@ -1,4 +1,4 @@
-﻿namespace Quad64
+﻿namespace Quad64.src
 {
     internal class WaterBox
     {

@@ -1,7 +1,6 @@
 ﻿using Melanchall.DryWetMidi.MusicTheory;
 using OpenTK.Graphics.OpenGL4;
 using OpenTK.Mathematics;
-using Quad64.lib;
 using System;
 using System.Collections.Generic;
 using System.Drawing;
@@ -9,7 +8,7 @@ using System.Linq;
 using System.Windows.Media.Imaging;
 using System.Windows.Media.Media3D;
 
-namespace Quad64
+namespace Quad64.src
 {
     internal class Area
     {
@@ -22,11 +21,11 @@ namespace Quad64
         public List<Object3D> Objects = new List<Object3D>();
         public List<Object3D> MacroObjects = new List<Object3D>();
         public List<Object3D> SpecialObjects = new List<Object3D>();
-        public List<Object3D> AllObjects 
-        { 
-            get 
+        public List<Object3D> AllObjects
+        {
+            get
             {
-                List<Object3D> list= new List<Object3D>();
+                List<Object3D> list = new List<Object3D>();
                 list.AddRange(Objects);
                 list.AddRange(MacroObjects);
                 list.AddRange(SpecialObjects);
@@ -58,7 +57,7 @@ namespace Quad64
                 SpecialObjects.ForEach(obj => drawObject(obj));
             }
 
-            if((bool)MainWindow.instance.waterBoxFlag.IsChecked)
+            if ((bool)MainWindow.instance.waterBoxFlag.IsChecked)
                 boxes.ForEach(box => box.mesh.draw(Matrix4.Identity));
 
             Console.WriteLine("Mesh Count: " + meshCount);
@@ -73,7 +72,7 @@ namespace Quad64
             Matrix4 rotateX = Matrix4.CreateRotationX(MathHelper.DegreesToRadians(obj.rotX));
             Matrix4 rotateY = Matrix4.CreateRotationY(MathHelper.DegreesToRadians(obj.rotY));
             Matrix4 rotateZ = Matrix4.CreateRotationZ(MathHelper.DegreesToRadians(obj.rotZ));
-            
+
             // 左から頂点にかかる
             transform = rotateX * rotateY * rotateZ * translate;
 
@@ -83,7 +82,7 @@ namespace Quad64
             }
 
             // draw bounding box
-            if(obj == selectedObject)
+            if (obj == selectedObject)
             {
                 //BoundingBox.draw(Vector3.One, new Quaternion(obj.rotX, obj.rotY, obj.rotZ, 1.0f), new Vector3(obj.posX, obj.posY, obj.posZ),
                 //        Color.Blue,

@@ -3,7 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 
-namespace Quad64
+namespace Quad64.src
 {
     internal class LevelScript : Script
     {
@@ -79,7 +79,7 @@ namespace Quad64
                             int checkLevelID = bsCmd.ReadInt32();
                             uint segOff = bsCmd.ReadUInt32();
 
-                            if(checkLevelID == levelID)
+                            if (checkLevelID == levelID)
                                 setSegmentPosition(ref bs, segOff);
                         }
                         break;
@@ -228,12 +228,12 @@ namespace Quad64
         {
             BinaryStream bs = null;
             setSegmentPosition(ref bs, segOff);
-            
+
             // vertex
             short cmd = bs.ReadInt16();
             short num_verts = bs.ReadInt16();
             bs.Position += 6 * num_verts;
-            
+
             // triangle
             while (true)
             {
@@ -254,7 +254,7 @@ namespace Quad64
                         return;
                     case 0x0043: // special object
                         short num_obj = bs.ReadInt16();
-                        for(int i = 0; i < num_obj; i++)
+                        for (int i = 0; i < num_obj; i++)
                         {
                             Object3D obj = new Object3D();
                             curArea.SpecialObjects.Add(obj);
@@ -283,7 +283,7 @@ namespace Quad64
                             while (got != 0xFF)
                             {
                                 got = bsRom.Read1Byte();
-                                if(got == presetID)
+                                if (got == presetID)
                                 {
                                     bsRom.Position += 2;
                                     obj.modelID = bsRom.Read1Byte();
@@ -304,7 +304,7 @@ namespace Quad64
                         short num_boxes = bs.ReadInt16();
                         for (int i = 0; i < num_boxes; i++)
                         {
-                            
+
 
                             // smaller than 0x32 => water
                             // 0x32 or 0xF0 => toxic haze

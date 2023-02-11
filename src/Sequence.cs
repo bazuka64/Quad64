@@ -6,7 +6,7 @@ using System.Windows.Media;
 using System;
 using System.Windows.Controls;
 
-namespace Quad64
+namespace Quad64.src
 {
     internal class Sequence
     {
@@ -34,7 +34,7 @@ namespace Quad64
 
             // convert m64 to midi
             OutputMIDI outputMIDI = new OutputMIDI();
-            Melanchall.DryWetMidi.Core.MidiFile midiFile = outputMIDI.ConvertToMIDI(this);
+            MidiFile midiFile = outputMIDI.ConvertToMIDI(this);
 
             // output midi
             string filename = $"../../../midi/{insts[0]} {name}.midi";

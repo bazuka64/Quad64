@@ -3,11 +3,11 @@ using OpenTK.Mathematics;
 using System;
 using System.Collections.Generic;
 
-namespace Quad64
+namespace Quad64.src
 {
     public class Mesh
     {
-        public List<Vertex> vertices= new List<Vertex>();
+        public List<Vertex> vertices = new List<Vertex>();
         public int curVertNum;
         public int width = 0, height = 0;
         public float scaleS = 1, scaleT = 1;
@@ -25,7 +25,7 @@ namespace Quad64
 
         public bool isBillboard;
         public bool isWaterBox;
-        
+
         public int layer;
         public bool cullFront;
         public bool cullBack;
@@ -39,7 +39,7 @@ namespace Quad64
         int ibo;
 
         public void build()
-        { 
+        {
             vertexCount = indices.Count;
 
             // list to array
@@ -81,7 +81,7 @@ namespace Quad64
             GL.BindBuffer(BufferTarget.ArrayBuffer, colorNormalBuf);
             GL.BufferData(BufferTarget.ArrayBuffer, colorNormals.Length * sizeof(byte), colorNormals, BufferUsageHint.StaticDraw);
             GL.EnableVertexAttribArray(2);
-            if(!useLight)
+            if (!useLight)
                 GL.VertexAttribPointer(2, 4, VertexAttribPointerType.UnsignedByte, true, sizeof(sbyte) * 4, 0);
             else
                 GL.VertexAttribPointer(2, 4, VertexAttribPointerType.Byte, true, sizeof(byte) * 4, 0);
@@ -105,11 +105,11 @@ namespace Quad64
 
                 MainWindow.shader.SetMatrix4("model", transform);
 
-                MainWindow.shader.SetInt("useTexture", useTexture?1:0);
-                MainWindow.shader.SetInt("useLight", useLight?1:0);
-                   
+                MainWindow.shader.SetInt("useTexture", useTexture ? 1 : 0);
+                MainWindow.shader.SetInt("useLight", useLight ? 1 : 0);
 
-                MainWindow.shader.SetInt("isBillboard", isBillboard?1:0);
+
+                MainWindow.shader.SetInt("isBillboard", isBillboard ? 1 : 0);
                 MainWindow.shader.SetInt("isWaterBox", isWaterBox ? 1 : 0);
 
                 if (useLight)
@@ -119,7 +119,7 @@ namespace Quad64
                     MainWindow.shader.SetVector3("ambientColor", light.ambientColor);
                 }
 
-                
+
 
                 if (useTexture && texture != null)
                 {

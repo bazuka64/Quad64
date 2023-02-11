@@ -1,11 +1,10 @@
 ﻿using OpenTK.Graphics.OpenGL4;
-using Quad64.lib;
 using Syroot.BinaryData;
 using System;
 using System.Collections.Generic;
 using System.IO;
 
-namespace Quad64
+namespace Quad64.src
 {
     internal class ROM
     {
@@ -80,7 +79,7 @@ namespace Quad64
 
         public void resetSegment()
         {
-            foreach(var segment in segments)
+            foreach (var segment in segments)
             {
                 if (segment.Key != 0x15 && segment.Key != 0x02)
                     segments.Remove(segment.Key);
@@ -90,7 +89,7 @@ namespace Quad64
         void loadSequence()
         {
             // delete midi and m64 files
-            if(Directory.Exists("../../../midi/"))
+            if (Directory.Exists("../../../midi/"))
                 Directory.Delete("../../../midi/", true);
             Directory.CreateDirectory("../../../midi/");
 
