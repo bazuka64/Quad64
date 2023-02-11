@@ -1,0 +1,83 @@
+﻿<Window x:Class="Quad64.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:Quad64" xmlns:wpf="clr-namespace:OpenTK.Wpf;assembly=GLWpfControl"
+        mc:Ignorable="d"
+        Title="MainWindow" Height="1080" Width="1920">
+
+    <DockPanel>
+        <Menu DockPanel.Dock="Top">
+            <MenuItem Header="File">
+                <MenuItem Header="Choose ROM Directory" Click="MenuItem_Click"/>
+            </MenuItem>
+        </Menu>
+        
+        <Grid >
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="1*"/>
+                <ColumnDefinition Width="3*"/>
+            </Grid.ColumnDefinitions>
+
+            <Grid Grid.Column="0">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="1*"/>
+                    <RowDefinition Height="1*"/>
+                    <RowDefinition Height="1*"/>
+                </Grid.RowDefinitions>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="1*"/>
+                    <ColumnDefinition Width="1*"/>
+                </Grid.ColumnDefinitions>
+
+
+                <ListBox Grid.Column="0" Grid.Row="0" x:Name="romList" SelectionChanged="romList_SelectionChanged"/>
+
+                <StackPanel Grid.Column="1" Grid.Row="0" Margin="5">
+                    <CheckBox Content="layer 1" IsChecked="True" x:Name="layer1"  Focusable="False"/>
+                    <CheckBox Content="layer 2" IsChecked="True" x:Name="layer2"  Focusable="False"/>
+                    <CheckBox Content="layer 3" IsChecked="True" x:Name="layer3"  Focusable="False"/>
+                    <CheckBox Content="layer 4" IsChecked="True" x:Name="layer4"  Focusable="False"/>
+                    <CheckBox Content="layer 5" IsChecked="True" x:Name="layer5"  Focusable="False"/>
+                    <CheckBox Content="layer 6" IsChecked="True" x:Name="layer6"  Focusable="False"/>
+
+                    <Separator/>
+
+                    <CheckBox Content="Objects" IsChecked="True" x:Name="objectFlag"  Focusable="False"/>
+                    <CheckBox Content="Water Box" IsChecked="True" x:Name="waterBoxFlag"  Focusable="False"/>
+                    <CheckBox Content="All Models" IsChecked="False" x:Name="allModels"  Focusable="False"/>
+                    <CheckBox Content="WireFrame" Name="wireFrame" Focusable="False"/>
+                    
+                    
+                    <Slider x:Name="cameraSpeed" Value="10" TickFrequency="1" IsSnapToTickEnabled="True" TickPlacement="BottomRight" Minimum="1"/>
+                    <ToggleButton x:Name="muteButton" IsChecked="True" Content="Mute" Checked="muteButton_Checked" Unchecked="muteButton_Unchecked"/>
+                </StackPanel>
+
+
+
+                <ListBox Grid.Column="0" Grid.Row="1" x:Name="levelList" SelectionChanged="levelList_SelectionChanged"/>
+
+
+                <StackPanel Grid.Column="1" Grid.Row="1" Margin="5">
+                    <RadioButton Content="Area 0" IsEnabled="False" x:Name="area0" Checked="area_Checked" Focusable="False"/>
+                    <RadioButton Content="Area 1" IsEnabled="False" x:Name="area1" Checked="area_Checked" Focusable="False"/>
+                    <RadioButton Content="Area 2" IsEnabled="False" x:Name="area2" Checked="area_Checked" Focusable="False"/>
+                    <RadioButton Content="Area 3" IsEnabled="False" x:Name="area3" Checked="area_Checked" Focusable="False"/>
+                    <RadioButton Content="Area 4" IsEnabled="False" x:Name="area4" Checked="area_Checked" Focusable="False"/>
+                    <RadioButton Content="Area 5" IsEnabled="False" x:Name="area5" Checked="area_Checked" Focusable="False"/>
+                    <RadioButton Content="Area 6" IsEnabled="False" x:Name="area6" Checked="area_Checked" Focusable="False"/>
+                    <RadioButton Content="Area 7" IsEnabled="False" x:Name="area7" Checked="area_Checked" Focusable="False"/>
+                </StackPanel>
+
+                <ListBox Grid.Column="0" Grid.Row="2" x:Name="sequenceList" SelectionChanged="sequenceList_SelectionChanged" KeyDown="sequenceList_KeyDown" />
+
+                <ListBox Grid.Column="1" Grid.Row="2" x:Name="objectList" SelectionChanged="objectList_SelectionChanged"/>
+
+            </Grid>
+
+            <wpf:GLWpfControl Grid.Column="1" x:Name="OpenTkControl" Render="OpenTkControl_Render" SizeChanged="OpenTkControl_SizeChanged" MouseWheel="OpenTkControl_MouseWheel"/>
+
+        </Grid>
+    </DockPanel>
+</Window>
