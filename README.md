@@ -8,4 +8,4 @@ This repository is a fork of <a href="https://github.com/DavidSM64/Quad64">Quad6
 * Play Animation
 * improve instrument selection (including drums) of MIDI format
 
-<img src="https://imgur.com/8TBRJwC"/>
+<img src="https://i.imgur.com/8TBRJwC.gif"/>
