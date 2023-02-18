@@ -16,5 +16,5 @@ This repository is a fork of <a href="https://github.com/DavidSM64/Quad64">Quad6
 # How To Use
 
 put two resources in a directory Quad64.exe exists
-Quad64\bin\x86\Debug\net7.0-windows\Model\model.pmx (and images)
-Quad64\bin\x86\Debug\net7.0-windows\rom\sm64.z64
+* Quad64\bin\x86\Debug\net7.0-windows\Model\model.pmx (and images)
+* Quad64\bin\x86\Debug\net7.0-windows\rom\sm64.z64
