@@ -363,3 +363,5 @@ MigrationBackup/
 FodyWeavers.xsd
 
 settings.ini
+
+rom/sm64.z64

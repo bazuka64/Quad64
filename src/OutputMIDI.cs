@@ -45,11 +45,11 @@ namespace Quad64.src
             // 楽器変換用のxml, jsonの読み込み
             int instSetID = seq.insts[0];
             XmlDocument xml = new XmlDocument();
-            xml.Load("../../../instrument/sm64_info.xml");
+            xml.Load("instrument/sm64_info.xml");
             indexentry = xml.SelectSingleNode($"RomDesc/audiobankidx/indexentry[@index={instSetID}]");
 
             string jsonFile = $"{instSetID:X2}.json";
-            string jsonText = File.ReadAllText($"../../../instrument/sound_banks/{jsonFile}");
+            string jsonText = File.ReadAllText($"instrument/sound_banks/{jsonFile}");
             JsonDocument json = JsonDocument.Parse(jsonText);
             instrument_list = json.RootElement.GetProperty("instrument_list");
             instruments = json.RootElement.GetProperty("instruments");

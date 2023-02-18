@@ -30,15 +30,18 @@ namespace Quad64.src
             if (id == 0) return;
 
             // output m64
-            File.WriteAllBytes($"../../../midi/{insts[0]} {name}.m64", data);
+            if (!Directory.Exists("midi"))
+                Directory.CreateDirectory("midi");
+            File.WriteAllBytes($"midi/{insts[0]} {name}.m64", data);
 
             // convert m64 to midi
             OutputMIDI outputMIDI = new OutputMIDI();
             MidiFile midiFile = outputMIDI.ConvertToMIDI(this);
 
             // output midi
-            string filename = $"../../../midi/{insts[0]} {name}.midi";
-            midiFile.Write(filename, false);
+            string filename = $"midi/{insts[0]} {name}.midi";
+            if(!File.Exists(filename))
+                midiFile.Write(filename, false);
 
             // play midi
             //mediaElement.LoadedBehavior = MediaState.Manual;

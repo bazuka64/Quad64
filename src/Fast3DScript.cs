@@ -329,8 +329,8 @@ namespace Quad64.src
                     return (int)TextureWrapMode.MirroredRepeat;
                 case 2:
                     return (int)TextureWrapMode.ClampToEdge;
-                default:
                 case 0:
+                default:
                     return (int)TextureWrapMode.Repeat;
             }
         }

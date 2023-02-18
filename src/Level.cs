@@ -11,6 +11,7 @@ namespace Quad64.src
         public bool hasArea;
         public Area[] areas = new Area[8];
         public Area curArea { get => areas[curAreaID]; }
+        public Vector3 marioPos;
 
         public Dictionary<byte, Model3D> models = new Dictionary<byte, Model3D>();
         public Dictionary<uint, Texture> textures = new Dictionary<uint, Texture>();

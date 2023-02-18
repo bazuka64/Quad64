@@ -1,4 +1,6 @@
-﻿using OpenTK.Graphics.OpenGL4;
+﻿using libsm64sharp;
+using MMDTools;
+using OpenTK.Graphics.OpenGL4;
 using OpenTK.Mathematics;
 using OpenTK.Wpf;
 using Quad64.src;
@@ -6,6 +8,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows;
@@ -19,12 +22,14 @@ using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
+using Vector3 = OpenTK.Mathematics.Vector3;
 
 namespace Quad64
 {
     /// <summary>
     /// Interaction logic for MainWindow.xaml
     /// </summary>
+
     public partial class MainWindow : Window
     {
         public static MainWindow instance;
@@ -37,9 +42,14 @@ namespace Quad64
         Level level;
 
         string romDir = "";
-        string settingsPath = "../../../settings.ini";
+        string settingsPath = "settings.ini";
 
         MediaPlayer mediaPlayer = new MediaPlayer();
+
+        Sm64Manager sm64Manager;
+
+        PMXMesh pmxMesh;
+
 
         public MainWindow()
         {
@@ -54,7 +64,7 @@ namespace Quad64
             };
             OpenTkControl.Start(settings);
 
-            shader = new Shader("../../../shaders/shader.vert", "../../../shaders/shader.frag");
+            shader = new Shader("shaders/shader.vert", "shaders/shader.frag");
             camera = new Camera();
             mediaPlayer.MediaEnded += (s, e) =>
             {
@@ -70,6 +80,22 @@ namespace Quad64
                 romList.ItemsSource = romPaths.Select(romPath => System.IO.Path.GetFileName(romPath));
             }
 
+            // libsm64
+            if (File.Exists("rom/sm64.z64"))
+            {
+                byte[] sm64Rom = File.ReadAllBytes("rom/sm64.z64");
+                sm64Manager = new Sm64Manager();
+                sm64Manager.sm64Context = Sm64Context.InitFromRom(sm64Rom);
+
+            }
+
+            // mmd
+            if (File.Exists("Model/model.pmx"))
+            {
+                PMXObject pmx = PMXParser.Parse("Model/model.pmx");
+                pmxMesh = new PMXMesh(pmx);
+
+            }
         }
 
         private void OpenTkControl_Render(TimeSpan obj)
@@ -111,6 +137,24 @@ namespace Quad64
                     level.areas[level.curAreaID].draw();
             }
 
+            // libsm64
+            if(sm64Manager != null && sm64Manager.sm64Mario != null )
+            {
+                if(FrameTimer.animTimer == 0)
+                    sm64Manager.sm64Mario.Tick();
+                sm64Manager.Draw(camera);
+                if (Keyboard.IsKeyDown(Key.Enter))
+                    sm64Manager.sm64Mario.Gamepad.IsAButtonDown = true;
+                else
+                    sm64Manager.sm64Mario.Gamepad.IsAButtonDown = false;
+                
+            }
+
+            // mmd
+            if (level != null && level.hasArea && pmxMesh != null)
+                pmxMesh.Draw(camera);
+
+            // camera movement
             float cameraSpeed = (float)this.cameraSpeed.Value;
             if (Keyboard.IsKeyDown(Key.W))
                 camera.position += camera.front * obj.Milliseconds * cameraSpeed;
@@ -187,7 +231,20 @@ namespace Quad64
             // object list
             objectList.ItemsSource = level.curArea.AllObjects.Where(obj => obj.modelID != 0);
             objectList.DisplayMemberPath = "s_modelID";
+
+            // libsm64
+            if(sm64Manager != null)
+                sm64Manager.Init(level);
+
+            if(pmxMesh != null)
+            {
+                pmxMesh.worldPos = level.marioPos;
+                pmxMesh.worldPos.Z -= 500;
+
+            }
         }
+
+        
 
         private void sequenceList_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {

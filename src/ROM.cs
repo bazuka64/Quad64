@@ -10,7 +10,7 @@ namespace Quad64.src
     {
         public static ROM instance;
 
-        byte[] bytes;
+        public byte[] bytes;
         public BinaryStream bs;
         public Dictionary<int, byte[]> segments = new Dictionary<int, byte[]>();
 
@@ -89,9 +89,9 @@ namespace Quad64.src
         void loadSequence()
         {
             // delete midi and m64 files
-            if (Directory.Exists("../../../midi/"))
-                Directory.Delete("../../../midi/", true);
-            Directory.CreateDirectory("../../../midi/");
+            if (Directory.Exists("midi/"))
+                Directory.Delete("midi/", true);
+            Directory.CreateDirectory("midi/");
 
             // set table
             uint seqTable = 0x03E00000;

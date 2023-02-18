@@ -1,4 +1,5 @@
-﻿using Syroot.BinaryData;
+﻿using OpenTK.Mathematics;
+using Syroot.BinaryData;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -163,12 +164,25 @@ namespace Quad64.src
                             BehaviorScript.parse(obj.behAddr, obj);
                         }
                         break;
+                    case 0x2b: // set mario pos
+                        {
+                            bsCmd.Position = 6;
+                            level.marioPos.X = bsCmd.ReadInt16();
+                            level.marioPos.Y = bsCmd.ReadInt16();
+                            level.marioPos.Z = bsCmd.ReadInt16();
+                        }
+                        break;
                     case 0x2e: // special object
                         {
                             bsCmd.Position = 4;
                             uint segOff = bsCmd.ReadUInt32();
 
                             CMD_2E(segOff);
+                        }
+                        break;
+                    case 0x31: // terrain type
+                        {
+                            curArea.terraiType = cmd[3];
                         }
                         break;
                     case 0x34: // blackout screen
@@ -230,9 +244,17 @@ namespace Quad64.src
             setSegmentPosition(ref bs, segOff);
 
             // vertex
+            CollisionMap cmap = curArea.collision;
             short cmd = bs.ReadInt16();
             short num_verts = bs.ReadInt16();
-            bs.Position += 6 * num_verts;
+            //bs.Position += 6 * num_verts;
+            for (int i = 0; i < num_verts; i++)
+            {
+                short x = bs.ReadInt16();
+                short y = bs.ReadInt16();
+                short z = bs.ReadInt16();
+                cmap.AddVertex(new Vector3(x, y, z));
+            }
 
             // triangle
             while (true)
@@ -240,8 +262,18 @@ namespace Quad64.src
                 cmd = bs.ReadInt16();
                 if (cmd == 0x0041) break;
 
+                cmap.NewTriangleList(cmd);
                 short num_tri = bs.ReadInt16();
-                bs.Position += collisionLength(cmd) * num_tri;
+                //bs.Position += collisionLength(cmd) * num_tri;
+                for (int i = 0; i < num_tri; i++)
+                {
+                    ushort a = bs.ReadUInt16();
+                    ushort b = bs.ReadUInt16();
+                    ushort c = bs.ReadUInt16();
+                    cmap.AddTriangle(a, b, c);
+                    if (collisionLength(cmd) == 8)
+                        bs.Position += 2;
+                }
             }
 
             // special object

@@ -51,7 +51,7 @@
                     
                     
                     <Slider x:Name="cameraSpeed" Value="10" TickFrequency="1" IsSnapToTickEnabled="True" TickPlacement="BottomRight" Minimum="1"/>
-                    <ToggleButton x:Name="muteButton" IsChecked="False" Content="Mute" Checked="muteButton_Checked" Unchecked="muteButton_Unchecked"/>
+                    <ToggleButton x:Name="muteButton" IsChecked="False" Content="Mute" Checked="muteButton_Checked" Unchecked="muteButton_Unchecked" Focusable="False"/>
                 </StackPanel>
 
 

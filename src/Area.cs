@@ -15,8 +15,10 @@ namespace Quad64.src
         byte areaID;
         public Level level;
         public byte seqID;
+        public byte terraiType;
 
         public Model3D model = new Model3D();
+        public CollisionMap collision = new CollisionMap();
 
         public List<Object3D> Objects = new List<Object3D>();
         public List<Object3D> MacroObjects = new List<Object3D>();
@@ -60,7 +62,7 @@ namespace Quad64.src
             if ((bool)MainWindow.instance.waterBoxFlag.IsChecked)
                 boxes.ForEach(box => box.mesh.draw(Matrix4.Identity));
 
-            Console.WriteLine("Mesh Count: " + meshCount);
+            //Console.WriteLine("Mesh Count: " + meshCount);
         }
 
         void drawObject(Object3D obj)
