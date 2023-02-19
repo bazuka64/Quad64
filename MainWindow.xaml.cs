@@ -83,10 +83,13 @@ namespace Quad64
             // libsm64
             if (File.Exists("rom/sm64.z64"))
             {
+                Sm64Context.RegisterPlaySoundFunction(args => {});
+
                 byte[] sm64Rom = File.ReadAllBytes("rom/sm64.z64");
                 sm64Manager = new Sm64Manager();
                 sm64Manager.sm64Context = Sm64Context.InitFromRom(sm64Rom);
 
+                Sm64Audio.Start(sm64Manager.sm64Context);
             }
 
             // mmd
@@ -96,6 +99,8 @@ namespace Quad64
                 pmxMesh = new PMXMesh(pmx);
 
             }
+
+            // vmd
         }
 
         private void OpenTkControl_Render(TimeSpan obj)
@@ -235,6 +240,9 @@ namespace Quad64
             // libsm64
             if(sm64Manager != null)
                 sm64Manager.Init(level);
+
+            //byte seqID = level.areas[level.curAreaID].seqID;
+            //MyLibSm64Interop.sm64_play_music(0, (ushort)(seqID | 0x80), 0);
 
             if(pmxMesh != null)
             {

@@ -54,7 +54,9 @@ namespace Quad64.src
                 }
             }
             sm64StaticCollisionMeshBuilder.Build();
+
             sm64Mario = sm64Context.CreateMario(level.marioPos.X, level.marioPos.Y, level.marioPos.Z);
+            
 
             sm64Mario.Tick();
 
