@@ -1,11 +1,15 @@
 ﻿using libsm64sharp;
 using MMDTools;
+using MP3Sharp;
+using NAudio.Wave;
 using OpenTK.Graphics.OpenGL4;
 using OpenTK.Mathematics;
 using OpenTK.Wpf;
 using Quad64.src;
+using Scallion.DomainModels;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices;
@@ -49,7 +53,10 @@ namespace Quad64
         Sm64Manager sm64Manager;
 
         PMXMesh pmxMesh;
+        Mp3FileReader reader;
+        WaveOut waveOut;
 
+        public static Stopwatch stopwatch = new Stopwatch();
 
         public MainWindow()
         {
@@ -101,6 +108,19 @@ namespace Quad64
             }
 
             // vmd
+            System.Text.Encoding.RegisterProvider(System.Text.CodePagesEncodingProvider.Instance);
+            Motion motion = new Motion();
+            motion.Load("Motion/Motion.vmd");
+            pmxMesh.motion = motion;
+            for (int i = 0; i < motion.Bones.Count; i++)
+            {
+                motion.Bones[i].KeyFrames.Sort((f1, f2) => f1.KeyFrameIndex - f2.KeyFrameIndex);
+            }
+
+            reader = new Mp3FileReader("Motion/motion.mp3");
+            waveOut = new WaveOut();
+            waveOut.Volume = 0.5f;
+            waveOut.Init(reader);
         }
 
         private void OpenTkControl_Render(TimeSpan obj)
@@ -247,9 +267,12 @@ namespace Quad64
             if(pmxMesh != null)
             {
                 pmxMesh.worldPos = level.marioPos;
-                pmxMesh.worldPos.Z -= 500;
-
+                pmxMesh.worldPos.Z -= 400;
             }
+
+            reader.Position = 0;
+            waveOut.Play();
+            stopwatch.Restart();
         }
 
         

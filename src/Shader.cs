@@ -8,7 +8,7 @@ namespace Quad64.src
 {
     public class Shader
     {
-        int program;
+        public int program;
         Dictionary<string, int> uniformLocations = new Dictionary<string, int>();
 
         public Shader(string vertPath, string fragPath)
@@ -33,6 +33,8 @@ namespace Quad64.src
                 int location = GL.GetUniformLocation(program, name);
                 uniformLocations.Add(name, location);
             }
+
+            Use();
         }
 
         void CompileShader(int shader)

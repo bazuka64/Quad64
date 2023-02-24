@@ -21,10 +21,12 @@
   <ItemGroup>
     <PackageReference Include="libsm64-sharp" Version="1.0.1" />
     <PackageReference Include="Melanchall.DryWetMidi" Version="6.1.4" />
+    <PackageReference Include="MP3Sharp" Version="1.0.5" />
     <PackageReference Include="NAudio" Version="2.1.0" />
     <PackageReference Include="OpenTK.GLWpfControl" Version="4.2.3" />
     <PackageReference Include="PMXParser" Version="1.1.1" />
     <PackageReference Include="Scallion" Version="1.0.0" />
+    <PackageReference Include="Silk.NET.OpenAL" Version="2.16.0" />
     <PackageReference Include="SixLabors.ImageSharp" Version="2.1.3" />
     <PackageReference Include="Syroot.BinaryData" Version="5.2.2" />
   </ItemGroup>
