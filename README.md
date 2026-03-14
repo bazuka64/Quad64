@@ -13,7 +13,7 @@ This repository is a fork of <a href="https://github.com/DavidSM64/Quad64">Quad6
 <img src="https://user-images.githubusercontent.com/73321205/218247751-b786a62a-f2d5-4362-bdda-c712b827a689.gif"/>
 <img src="https://i.imgur.com/lfiQxAF.jpg"/>
 
-# Usage
+# Usage (Options)
 
 put resources in a directory Quad64.exe exists
 * Quad64\bin\x86\Debug\net7.0-windows\rom\sm64.z64

@@ -26,9 +26,11 @@ using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
+using System.Xml.Linq;
+using static System.Runtime.InteropServices.JavaScript.JSType;
 using Vector3 = OpenTK.Mathematics.Vector3;
 
-namespace Quad64
+namespace Quad64_new
 {
     /// <summary>
     /// Interaction logic for MainWindow.xaml
@@ -90,7 +92,7 @@ namespace Quad64
             // libsm64
             if (File.Exists("rom/sm64.z64"))
             {
-                Sm64Context.RegisterPlaySoundFunction(args => {});
+                Sm64Context.RegisterPlaySoundFunction(args => { });
 
                 byte[] sm64Rom = File.ReadAllBytes("rom/sm64.z64");
                 sm64Manager = new Sm64Manager();
@@ -108,19 +110,26 @@ namespace Quad64
             }
 
             // vmd
-            System.Text.Encoding.RegisterProvider(System.Text.CodePagesEncodingProvider.Instance);
-            Motion motion = new Motion();
-            motion.Load("Motion/Motion.vmd");
-            pmxMesh.motion = motion;
-            for (int i = 0; i < motion.Bones.Count; i++)
+            if (File.Exists("Motion/Motion.vmd"))
             {
-                motion.Bones[i].KeyFrames.Sort((f1, f2) => f1.KeyFrameIndex - f2.KeyFrameIndex);
+                System.Text.Encoding.RegisterProvider(System.Text.CodePagesEncodingProvider.Instance);
+                Motion motion = new Motion();
+                motion.Load("Motion/Motion.vmd");
+                pmxMesh.motion = motion;
+                for (int i = 0; i < motion.Bones.Count; i++)
+                {
+                    motion.Bones[i].KeyFrames.Sort((f1, f2) => f1.KeyFrameIndex - f2.KeyFrameIndex);
+                }
             }
 
-            reader = new Mp3FileReader("Motion/motion.mp3");
-            waveOut = new WaveOut();
-            waveOut.Volume = 0.5f;
-            waveOut.Init(reader);
+            if (File.Exists("Motion/motion.mp3"))
+            {
+                reader = new Mp3FileReader("Motion/motion.mp3");
+                waveOut = new WaveOut();
+                waveOut.Volume = 0.5f;
+                waveOut.Init(reader);
+            }
+
         }
 
         private void OpenTkControl_Render(TimeSpan obj)
@@ -163,16 +172,16 @@ namespace Quad64
             }
 
             // libsm64
-            if(sm64Manager != null && sm64Manager.sm64Mario != null )
+            if (sm64Manager != null && sm64Manager.sm64Mario != null)
             {
-                if(FrameTimer.animTimer == 0)
+                if (FrameTimer.animTimer == 0)
                     sm64Manager.sm64Mario.Tick();
                 sm64Manager.Draw(camera);
                 if (Keyboard.IsKeyDown(Key.Enter))
                     sm64Manager.sm64Mario.Gamepad.IsAButtonDown = true;
                 else
                     sm64Manager.sm64Mario.Gamepad.IsAButtonDown = false;
-                
+
             }
 
             // mmd
@@ -196,8 +205,8 @@ namespace Quad64
 
             float sensitivity = 0.1f;
             Point curPos = Mouse.GetPosition(OpenTkControl);
-            
-            if(Mouse.LeftButton == MouseButtonState.Pressed && OpenTkControl == Mouse.DirectlyOver)
+
+            if (Mouse.LeftButton == MouseButtonState.Pressed && OpenTkControl == Mouse.DirectlyOver)
             {
                 Vector delta = curPos - lastPos;
                 camera.Yaw += (float)delta.X * sensitivity;
@@ -215,14 +224,14 @@ namespace Quad64
         {
             rom = new ROM(System.IO.Path.Combine(romDir, (string)romList.SelectedItem));
 
-            if(levelList.Items.Count == 0)
+            if (levelList.Items.Count == 0)
             {
                 levelList.ItemsSource = ROM.levelIDs;
                 levelList.DisplayMemberPath = "Key";
                 levelList.SelectedValuePath = "Value";
             }
             levelList.SelectedIndex = -1;
-            
+
             sequenceList.ItemsSource = rom.sequences;
             sequenceList.DisplayMemberPath = "name";
 
@@ -231,12 +240,12 @@ namespace Quad64
 
         private void levelList_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
-            if(levelList.SelectedIndex != -1)
+            if (levelList.SelectedIndex != -1)
             {
                 level = LevelScript.parse((ushort)levelList.SelectedValue);
                 camera = new Camera();
 
-                for(int i = 0; i < 8; i++)
+                for (int i = 0; i < 8; i++)
                 {
                     ((System.Windows.Controls.RadioButton)FindName("area" + i)).IsEnabled = level.areas[i] != null;
                 }
@@ -258,28 +267,31 @@ namespace Quad64
             objectList.DisplayMemberPath = "s_modelID";
 
             // libsm64
-            if(sm64Manager != null)
+            if (sm64Manager != null)
                 sm64Manager.Init(level);
 
             //byte seqID = level.areas[level.curAreaID].seqID;
             //MyLibSm64Interop.sm64_play_music(0, (ushort)(seqID | 0x80), 0);
 
-            if(pmxMesh != null)
+            if (pmxMesh != null)
             {
                 pmxMesh.worldPos = level.marioPos;
                 pmxMesh.worldPos.Z -= 400;
             }
 
-            reader.Position = 0;
-            waveOut.Play();
-            stopwatch.Restart();
+            if (reader != null)
+            {
+                reader.Position = 0;
+                waveOut.Play();
+                stopwatch.Restart();
+            }
         }
 
-        
+
 
         private void sequenceList_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
-            if(sequenceList.SelectedItem !=null && !(bool)muteButton.IsChecked)
+            if (sequenceList.SelectedItem != null && !(bool)muteButton.IsChecked)
                 ((Sequence)sequenceList.SelectedItem).Play(mediaPlayer);
         }
 
@@ -291,9 +303,9 @@ namespace Quad64
         private void MenuItem_Click(object sender, RoutedEventArgs e)
         {
             var dialog = new FolderBrowserDialog();
-            if(dialog.ShowDialog() == System.Windows.Forms.DialogResult.OK)
+            if (dialog.ShowDialog() == System.Windows.Forms.DialogResult.OK)
             {
-                
+
                 File.WriteAllText(settingsPath, dialog.SelectedPath);
                 romDir = dialog.SelectedPath;
                 string[] romPaths = Directory.GetFiles(romDir);
@@ -318,7 +330,7 @@ namespace Quad64
 
         private void objectList_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
-            if(objectList.SelectedItem != null)
+            if (objectList.SelectedItem != null)
             {
                 level.curArea.selectedObject = (Object3D)objectList.SelectedItem;
                 Object3D obj = level.curArea.selectedObject;
