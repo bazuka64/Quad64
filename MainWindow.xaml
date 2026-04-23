@@ -1,83 +1,252 @@
-﻿<Window x:Class="Quad64_new.MainWindow"
+<Window x:Class="Quad64_new.MainWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:Quad64_new"
+        xmlns:src="clr-namespace:Quad64.src"
         xmlns:wpf="clr-namespace:OpenTK.Wpf;assembly=GLWpfControl"
         mc:Ignorable="d"
-        Title="MainWindow" Height="450" Width="800">
+        Title="Quad64" Height="720" Width="1280" WindowState="Maximized"
+        WindowStartupLocation="CenterScreen"
+        Background="#111111">
+    <Window.Resources>
+        <local:EmptyStringToVisibilityConverter x:Key="EmptyToVisibleConverter"/>
+        <!-- カードのホバー効果 -->
+        <Style x:Key="CardBorder" TargetType="Border">
+            <Setter Property="Background" Value="#1e1e1e"/>
+            <Setter Property="BorderBrush" Value="#333"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Style.Triggers>
+                <Trigger Property="IsMouseOver" Value="True">
+                    <Setter Property="BorderBrush" Value="#888"/>
+                    <Setter Property="Background" Value="#2a2a2a"/>
+                </Trigger>
+            </Style.Triggers>
+        </Style>
+        <Style TargetType="GroupBox">
+            <Setter Property="Foreground" Value="#aaa"/>
+            <Setter Property="BorderBrush" Value="#333"/>
+        </Style>
+        <Style TargetType="CheckBox">
+            <Setter Property="Foreground" Value="#ccc"/>
+        </Style>
+        <Style TargetType="RadioButton">
+            <Setter Property="Foreground" Value="#ccc"/>
+        </Style>
+        <Style TargetType="TextBlock">
+            <Setter Property="Foreground" Value="#ccc"/>
+        </Style>
+    </Window.Resources>
+
     <DockPanel>
-        <Menu DockPanel.Dock="Top">
-            <MenuItem Header="File">
+        <Menu DockPanel.Dock="Top" Background="#1a1a1a" Foreground="#ccc">
+            <MenuItem Header="File" Background="#1a1a1a" Foreground="#ccc">
                 <MenuItem Header="Choose ROM Directory" Click="MenuItem_Click"/>
             </MenuItem>
         </Menu>
 
-        <Grid >
+        <Grid>
             <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="1*"/>
-                <ColumnDefinition Width="3*"/>
+                <ColumnDefinition Width="340" MinWidth="240"/>
+                <ColumnDefinition Width="5"/>
+                <ColumnDefinition Width="*"/>
             </Grid.ColumnDefinitions>
 
-            <Grid Grid.Column="0">
+            <!-- ========== 左パネル ========== -->
+            <Grid Grid.Column="0" Background="#161616">
                 <Grid.RowDefinitions>
-                    <RowDefinition Height="1*"/>
-                    <RowDefinition Height="1*"/>
-                    <RowDefinition Height="1*"/>
+                    <RowDefinition Height="*" MinHeight="120"/>   <!-- ROMブラウザ -->
+                    <RowDefinition Height="5"/>
+                    <RowDefinition Height="*" MinHeight="120"/>   <!-- レベルブラウザ -->
+                    <RowDefinition Height="Auto"/>                 <!-- 表示オプション -->
                 </Grid.RowDefinitions>
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="1*"/>
-                    <ColumnDefinition Width="1*"/>
-                </Grid.ColumnDefinitions>
 
+                <!-- ROM ブラウザ -->
+                <GroupBox Header="ROMs" Grid.Row="0" Margin="4,4,4,0">
+                    <DockPanel>
+                        <!-- 検索バー -->
+                        <TextBox x:Name="romSearchBox" DockPanel.Dock="Top" Margin="0,0,0,2"
+                                 Background="#222" Foreground="#ccc" BorderBrush="#444"
+                                 CaretBrush="White"
+                                 TextChanged="romSearchBox_TextChanged">
+                            <TextBox.Style>
+                                <Style TargetType="TextBox">
+                                    <Setter Property="Template">
+                                        <Setter.Value>
+                                            <ControlTemplate TargetType="TextBox">
+                                                <Grid>
+                                                    <Border Background="{TemplateBinding Background}"
+                                                            BorderBrush="{TemplateBinding BorderBrush}"
+                                                            BorderThickness="1" CornerRadius="2">
+                                                        <ScrollViewer x:Name="PART_ContentHost" Margin="4,2"/>
+                                                    </Border>
+                                                    <TextBlock IsHitTestVisible="False" Text="🔍 ROM名で検索..."
+                                                               Margin="6,2" Foreground="#555"
+                                                               Visibility="{Binding Text, RelativeSource={RelativeSource TemplatedParent},
+                                                                            Converter={StaticResource EmptyToVisibleConverter}}"/>
+                                                </Grid>
+                                            </ControlTemplate>
+                                        </Setter.Value>
+                                    </Setter>
+                                </Style>
+                            </TextBox.Style>
+                        </TextBox>
+                        <!-- ROM リスト -->
+                        <ListBox x:Name="romList" Background="#1a1a1a" Foreground="#ccc"
+                                 BorderBrush="#333" SelectionChanged="romList_SelectionChanged">
+                            <ListBox.ItemTemplate>
+                                <DataTemplate DataType="{x:Type src:RomEntry}">
+                                    <TextBlock Text="{Binding FileName}" FontSize="12" Margin="2,2"/>
+                                </DataTemplate>
+                            </ListBox.ItemTemplate>
+                            <ListBox.ItemContainerStyle>
+                                <Style TargetType="ListBoxItem">
+                                    <Setter Property="Foreground" Value="#ccc"/>
+                                    <Setter Property="Padding" Value="6,4"/>
+                                    <Style.Triggers>
+                                        <Trigger Property="IsSelected" Value="True">
+                                            <Setter Property="Background" Value="#2a4a7a"/>
+                                        </Trigger>
+                                        <Trigger Property="IsMouseOver" Value="True">
+                                            <Setter Property="Background" Value="#2a2a2a"/>
+                                        </Trigger>
+                                    </Style.Triggers>
+                                </Style>
+                            </ListBox.ItemContainerStyle>
+                        </ListBox>
+                    </DockPanel>
+                </GroupBox>
 
-                <ListBox Grid.Column="0" Grid.Row="0" x:Name="romList" SelectionChanged="romList_SelectionChanged"/>
+                <GridSplitter Grid.Row="1" Height="5" HorizontalAlignment="Stretch" Background="#222"/>
 
-                <StackPanel Grid.Column="1" Grid.Row="0" Margin="5">
-                    <CheckBox Content="layer 1" IsChecked="True" x:Name="layer1"  Focusable="False"/>
-                    <CheckBox Content="layer 2" IsChecked="True" x:Name="layer2"  Focusable="False"/>
-                    <CheckBox Content="layer 3" IsChecked="True" x:Name="layer3"  Focusable="False"/>
-                    <CheckBox Content="layer 4" IsChecked="True" x:Name="layer4"  Focusable="False"/>
-                    <CheckBox Content="layer 5" IsChecked="True" x:Name="layer5"  Focusable="False"/>
-                    <CheckBox Content="layer 6" IsChecked="True" x:Name="layer6"  Focusable="False"/>
+                <!-- レベル ブラウザ -->
+                <GroupBox Header="Levels" Grid.Row="2" Margin="4,0,4,0">
+                    <ListBox x:Name="levelGrid" Background="#1a1a1a" Foreground="#ccc"
+                             BorderBrush="#333" SelectionChanged="levelGrid_SelectionChanged"
+                             KeyDown="levelGrid_KeyDown">
+                        <ListBox.ItemTemplate>
+                            <DataTemplate DataType="{x:Type src:LevelEntry}">
+                                <TextBlock Text="{Binding Name}" FontSize="12" Margin="2,2"/>
+                            </DataTemplate>
+                        </ListBox.ItemTemplate>
+                        <ListBox.ItemContainerStyle>
+                            <Style TargetType="ListBoxItem">
+                                <Setter Property="Foreground" Value="#ccc"/>
+                                <Setter Property="Padding" Value="0"/>
+                                <Setter Property="Template">
+                                    <Setter.Value>
+                                        <ControlTemplate TargetType="ListBoxItem">
+                                            <Border x:Name="Bd" Background="Transparent"
+                                                    BorderThickness="3,0,0,0" BorderBrush="Transparent"
+                                                    Padding="8,5">
+                                                <ContentPresenter/>
+                                            </Border>
+                                            <ControlTemplate.Triggers>
+                                                <Trigger Property="IsSelected" Value="True">
+                                                    <Setter TargetName="Bd" Property="Background" Value="#1e3a5f"/>
+                                                    <Setter TargetName="Bd" Property="BorderBrush" Value="#4a9eff"/>
+                                                    <Setter Property="Foreground" Value="White"/>
+                                                    <Setter Property="FontWeight" Value="Bold"/>
+                                                </Trigger>
+                                                <Trigger Property="IsMouseOver" Value="True">
+                                                    <Setter TargetName="Bd" Property="Background" Value="#2a2a2a"/>
+                                                </Trigger>
+                                            </ControlTemplate.Triggers>
+                                        </ControlTemplate>
+                                    </Setter.Value>
+                                </Setter>
+                            </Style>
+                        </ListBox.ItemContainerStyle>
+                    </ListBox>
+                </GroupBox>
 
-                    <Separator/>
+                <!-- 表示オプション -->
+                <GroupBox Header="View Options" Grid.Row="3" Margin="4,0,4,4">
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
 
-                    <CheckBox Content="Objects" IsChecked="True" x:Name="objectFlag"  Focusable="False"/>
-                    <CheckBox Content="Water Box" IsChecked="True" x:Name="waterBoxFlag"  Focusable="False"/>
-                    <CheckBox Content="All Models" IsChecked="False" x:Name="allModels"  Focusable="False"/>
-                    <CheckBox Content="WireFrame" Name="wireFrame" Focusable="False"/>
+                        <!-- レイヤー -->
+                        <StackPanel Grid.Column="0" Margin="4">
+                            <CheckBox Content="Layer 1" IsChecked="True" x:Name="layer1" Focusable="False"/>
+                            <CheckBox Content="Layer 2" IsChecked="True" x:Name="layer2" Focusable="False"/>
+                            <CheckBox Content="Layer 3" IsChecked="True" x:Name="layer3" Focusable="False"/>
+                            <CheckBox Content="Layer 4" IsChecked="True" x:Name="layer4" Focusable="False"/>
+                            <CheckBox Content="Layer 5" IsChecked="True" x:Name="layer5" Focusable="False"/>
+                            <CheckBox Content="Layer 6" IsChecked="True" x:Name="layer6" Focusable="False"/>
+                        </StackPanel>
 
+                        <!-- フラグ -->
+                        <StackPanel Grid.Column="1" Margin="4">
+                            <CheckBox Content="Objects"   IsChecked="True"  x:Name="objectFlag"   Focusable="False"/>
+                            <CheckBox Content="Water Box" IsChecked="True"  x:Name="waterBoxFlag" Focusable="False"/>
+                            <CheckBox Content="All Models" IsChecked="False" x:Name="allModels"   Focusable="False"/>
+                            <CheckBox Content="WireFrame" x:Name="wireFrame" Focusable="False"/>
+                            <ToggleButton x:Name="muteButton" IsChecked="False" Content="Mute"
+                                          Checked="muteButton_Checked" Unchecked="muteButton_Unchecked"
+                                          Focusable="False" Margin="0,4,0,0" Height="22"/>
+                        </StackPanel>
 
-                    <Slider x:Name="cameraSpeed" Value="10" TickFrequency="1" IsSnapToTickEnabled="True" TickPlacement="BottomRight" Minimum="1"/>
-                    <ToggleButton x:Name="muteButton" IsChecked="True" Content="Mute" Checked="muteButton_Checked" Unchecked="muteButton_Unchecked" Focusable="False"/>
-                </StackPanel>
-
-
-
-                <ListBox Grid.Column="0" Grid.Row="1" x:Name="levelList" SelectionChanged="levelList_SelectionChanged"/>
-
-
-                <StackPanel Grid.Column="1" Grid.Row="1" Margin="5">
-                    <RadioButton Content="Area 0" IsEnabled="False" x:Name="area0" Checked="area_Checked" Focusable="False"/>
-                    <RadioButton Content="Area 1" IsEnabled="False" x:Name="area1" Checked="area_Checked" Focusable="False"/>
-                    <RadioButton Content="Area 2" IsEnabled="False" x:Name="area2" Checked="area_Checked" Focusable="False"/>
-                    <RadioButton Content="Area 3" IsEnabled="False" x:Name="area3" Checked="area_Checked" Focusable="False"/>
-                    <RadioButton Content="Area 4" IsEnabled="False" x:Name="area4" Checked="area_Checked" Focusable="False"/>
-                    <RadioButton Content="Area 5" IsEnabled="False" x:Name="area5" Checked="area_Checked" Focusable="False"/>
-                    <RadioButton Content="Area 6" IsEnabled="False" x:Name="area6" Checked="area_Checked" Focusable="False"/>
-                    <RadioButton Content="Area 7" IsEnabled="False" x:Name="area7" Checked="area_Checked" Focusable="False"/>
-                </StackPanel>
-
-                <ListBox Grid.Column="0" Grid.Row="2" x:Name="sequenceList" SelectionChanged="sequenceList_SelectionChanged" KeyDown="sequenceList_KeyDown" />
-
-                <ListBox Grid.Column="1" Grid.Row="2" x:Name="objectList" SelectionChanged="objectList_SelectionChanged"/>
-
+                        <!-- エリア + カメラ速度 -->
+                        <StackPanel Grid.Column="2" Margin="4">
+                            <RadioButton Content="Area 0" IsEnabled="False" x:Name="area0" Checked="area_Checked" Focusable="False"/>
+                            <RadioButton Content="Area 1" IsEnabled="False" x:Name="area1" Checked="area_Checked" Focusable="False"/>
+                            <RadioButton Content="Area 2" IsEnabled="False" x:Name="area2" Checked="area_Checked" Focusable="False"/>
+                            <RadioButton Content="Area 3" IsEnabled="False" x:Name="area3" Checked="area_Checked" Focusable="False"/>
+                            <RadioButton Content="Area 4" IsEnabled="False" x:Name="area4" Checked="area_Checked" Focusable="False"/>
+                            <RadioButton Content="Area 5" IsEnabled="False" x:Name="area5" Checked="area_Checked" Focusable="False"/>
+                            <RadioButton Content="Area 6" IsEnabled="False" x:Name="area6" Checked="area_Checked" Focusable="False"/>
+                            <RadioButton Content="Area 7" IsEnabled="False" x:Name="area7" Checked="area_Checked" Focusable="False"/>
+                            <Separator Margin="0,4"/>
+                            <TextBlock Text="Camera Speed" FontSize="9"/>
+                            <Slider x:Name="cameraSpeed" Value="10" TickFrequency="1"
+                                    IsSnapToTickEnabled="True" TickPlacement="BottomRight" Minimum="1" Maximum="50"/>
+                        </StackPanel>
+                    </Grid>
+                </GroupBox>
             </Grid>
 
-            <wpf:GLWpfControl Grid.Column="1" x:Name="OpenTkControl" Render="OpenTkControl_Render" SizeChanged="OpenTkControl_SizeChanged" MouseWheel="OpenTkControl_MouseWheel"/>
+            <GridSplitter Grid.Column="1" Width="5" HorizontalAlignment="Stretch" Background="#222"/>
 
+            <!-- ========== 3D ビューポート ========== -->
+            <Grid Grid.Column="2">
+                <wpf:GLWpfControl x:Name="OpenTkControl"
+                                   Render="OpenTkControl_Render"
+                                   SizeChanged="OpenTkControl_SizeChanged"
+                                   MouseWheel="OpenTkControl_MouseWheel"
+                                   MouseRightButtonDown="OpenTkControl_RightClick"
+                                   MouseLeftButtonDown="OpenTkControl_LeftClick"
+                                   MouseMove="OpenTkControl_MouseMove"/>
+
+                <!-- ステータスオーバーレイ -->
+                <StackPanel HorizontalAlignment="Left" VerticalAlignment="Bottom" Margin="8">
+                    <TextBlock x:Name="statusText" FontSize="11" Foreground="#88ffffff"/>
+                    <TextBlock x:Name="modeText" FontSize="11" Foreground="#88ffffff" Text="右クリック: FPS モード"/>
+                </StackPanel>
+
+                <!-- sequenceList / objectList (折りたたみ可能サイドバー) -->
+                <Expander HorizontalAlignment="Right" VerticalAlignment="Top"
+                          Header="☰" Margin="4" Background="#AA111111">
+                    <StackPanel Width="160" Background="#AA111111">
+                        <TextBlock Text="Sequences" FontSize="10" Margin="4,4,4,2" Foreground="#aaa"/>
+                        <ListBox x:Name="sequenceList" Height="120" Background="#111" Foreground="#ccc"
+                                 BorderBrush="#333"
+                                 SelectionChanged="sequenceList_SelectionChanged"
+                                 KeyDown="sequenceList_KeyDown"
+                                 DisplayMemberPath="name"/>
+                        <TextBlock Text="Objects" FontSize="10" Margin="4,6,4,2" Foreground="#aaa"/>
+                        <ListBox x:Name="objectList" Height="120" Background="#111" Foreground="#ccc"
+                                 BorderBrush="#333"
+                                 SelectionChanged="objectList_SelectionChanged"
+                                 DisplayMemberPath="s_modelID"/>
+                    </StackPanel>
+                </Expander>
+            </Grid>
         </Grid>
     </DockPanel>
 </Window>
